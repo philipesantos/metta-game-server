@@ -2,6 +2,7 @@ from core.definitions.function_definition import FunctionDefinition
 from core.patterns.events.drop_event_pattern import DropEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
+from core.patterns.facts.response_fact_pattern import ResponseFactPattern
 from core.patterns.functions.exists_function_pattern import ExistsFunctionPattern
 from core.patterns.functions.last_function_pattern import LastFunctionPattern
 from core.patterns.functions.location_path_function_pattern import (
@@ -28,7 +29,7 @@ class DropFunctionDefinition(FunctionDefinition):
             f"(= (drop ($what))\n"
             f"    (if {state_at_exists.to_metta()}\n"
             f"        {drop_trigger.to_metta()}\n"
-            f'        "You do not have that item"\n'
+            f'        {ResponseFactPattern(100, '"You do not have that item"').to_metta()}\n'
             f"    )\n"
             f")"
         )

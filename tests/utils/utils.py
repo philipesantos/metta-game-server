@@ -1,3 +1,6 @@
+from utils.response import ResponseText, parse_response_atom
+
+
 def unwrap_atom(atom):
     if hasattr(atom, "get_object"):
         obj = atom.get_object()
@@ -9,7 +12,9 @@ def unwrap_atom(atom):
     if hasattr(atom, "get_name"):
         return atom.get_name()
     if hasattr(atom, "get_children"):
-        return str(atom)
+        text = str(atom)
+        response = parse_response_atom(text)
+        return response if response is not None else text
     return atom
 
 

@@ -3,6 +3,7 @@ from core.patterns.facts.character_fact_pattern import CharacterFactPattern
 from core.patterns.facts.route_fact_pattern import RouteFactPattern
 from core.patterns.events.move_event_pattern import MoveEventPattern
 from core.definitions.function_definition import FunctionDefinition
+from core.patterns.facts.response_fact_pattern import ResponseFactPattern
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
 from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 from core.nlp.nl_spec import NLSpec, SlotSpec
@@ -22,7 +23,7 @@ class MoveTowardsFunctionDefinition(FunctionDefinition):
             f"    (match &self {state_at_match.to_metta()}\n"
             f"        (case (match &self {route_match.to_metta()} $to)\n"
             f"        (\n"
-            f'            (Empty "No way to go there")\n'
+            f"            (Empty {ResponseFactPattern(100, '"No way to go there"').to_metta()})\n"
             f"            ($to {TriggerFunctionPattern(move_event).to_metta()})\n"
             f"        ))\n"
             f"    )\n"

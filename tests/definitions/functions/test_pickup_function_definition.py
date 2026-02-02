@@ -61,7 +61,7 @@ class TestPickUpFunctionDefinition(unittest.TestCase):
 
         pickup = PickUpFunctionPattern("coin")
         result_pickup = metta.run(f"!{pickup.to_metta()}")
-        self.assertEqual(unwrap_first_match(result_pickup), "Picked up")
+        self.assertEqual(unwrap_first_match(result_pickup).text, "Picked up")
 
     def test_pickup_missing_item(self):
         metta = get_test_metta()
@@ -82,7 +82,7 @@ class TestPickUpFunctionDefinition(unittest.TestCase):
         pickup = PickUpFunctionPattern("coin")
         result_pickup = metta.run(f"!{pickup.to_metta()}")
         self.assertEqual(
-            unwrap_first_match(result_pickup),
+            unwrap_first_match(result_pickup).text,
             "There is no such item",
         )
 

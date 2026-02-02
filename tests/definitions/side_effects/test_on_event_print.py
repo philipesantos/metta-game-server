@@ -25,7 +25,7 @@ class TestOnEventPrint(unittest.TestCase):
 
         trigger_metta_usage = TriggerFunctionPattern(MoveEventPattern("cave", "glade"))
         result = metta.run(f"!{trigger_metta_usage.to_metta()}")
-        self.assertEqual(unwrap_first_match(result), text)
+        self.assertEqual(unwrap_first_match(result).text, text)
 
 
 if __name__ == "__main__":

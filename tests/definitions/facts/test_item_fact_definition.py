@@ -30,11 +30,11 @@ class TestItemFactDefinition(unittest.TestCase):
 
         item_pickup_trigger = TriggerFunctionPattern(PickUpEventPattern(key, "glade"))
         result_pickup_trigger = metta.run(f"!{item_pickup_trigger.to_metta()}")
-        self.assertEqual(unwrap_first_match(result_pickup_trigger), text_pickup)
+        self.assertEqual(unwrap_first_match(result_pickup_trigger).text, text_pickup)
 
         item_drop_trigger = TriggerFunctionPattern(DropEventPattern(key, "glade"))
         result_drop_trigger = metta.run(f"!{item_drop_trigger.to_metta()}")
-        self.assertEqual(unwrap_first_match(result_drop_trigger), text_drop)
+        self.assertEqual(unwrap_first_match(result_drop_trigger).text, text_drop)
 
         item_no_match = LocationFactPattern("bottle")
         result_no_match = metta.run(f"!(match &self {item_no_match.to_metta()} True)")

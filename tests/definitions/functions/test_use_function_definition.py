@@ -47,7 +47,7 @@ class TestUseFunctionDefinition(unittest.TestCase):
         use_action = UseFunctionPattern("crescent_rock", "cave_door")
         result = metta.run(f"!{use_action.to_metta()}")
 
-        self.assertEqual(unwrap_first_match(result), "Used")
+        self.assertEqual(unwrap_first_match(result).text, "Used")
 
     def test_returns_message_when_item_missing(self):
         metta = get_test_metta()
@@ -66,7 +66,7 @@ class TestUseFunctionDefinition(unittest.TestCase):
         use_action = UseFunctionPattern("crescent_rock", "cave_door")
         result = metta.run(f"!{use_action.to_metta()}")
 
-        self.assertEqual(unwrap_first_match(result), "You do not have that")
+        self.assertEqual(unwrap_first_match(result).text, "You do not have that")
 
     def test_returns_message_when_target_missing(self):
         metta = get_test_metta()
@@ -87,7 +87,9 @@ class TestUseFunctionDefinition(unittest.TestCase):
         use_action = UseFunctionPattern("crescent_rock", "cave_door")
         result = metta.run(f"!{use_action.to_metta()}")
 
-        self.assertEqual(unwrap_first_match(result), "There is nothing to use that on")
+        self.assertEqual(
+            unwrap_first_match(result).text, "There is nothing to use that on"
+        )
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ class TestTriggerFunctionDefinition(unittest.TestCase):
 
         trigger = TriggerFunctionPattern(SomeEventPattern("glade"))
         result = metta.run(f"!{trigger.to_metta()}")
-        self.assertEqual(unwrap_first_match(result), side_effect_text)
+        self.assertEqual(unwrap_first_match(result).text, side_effect_text)
 
 
 if __name__ == "__main__":

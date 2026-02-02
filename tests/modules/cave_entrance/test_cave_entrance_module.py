@@ -58,7 +58,7 @@ class TestCaveEntranceModule(unittest.TestCase):
         use_action = UseFunctionPattern("crescent_rock", "cave_door")
         result = metta.run(f"!{use_action.to_metta()}")
 
-        self.assertEqual(unwrap_first_match(result), "The cave door opens.")
+        self.assertEqual(unwrap_first_match(result).text, "The cave door opens.")
 
 
 if __name__ == "__main__":

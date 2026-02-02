@@ -31,7 +31,7 @@ class TestLocationFactDefinition(unittest.TestCase):
 
         location_move_trigger = TriggerFunctionPattern(MoveEventPattern("cave", key))
         result_move_trigger = metta.run(f"!{location_move_trigger.to_metta()}")
-        self.assertEqual(unwrap_first_match(result_move_trigger), description)
+        self.assertEqual(unwrap_first_match(result_move_trigger).text, description)
 
         location_no_match = LocationFactPattern("cave")
         result_no_match = metta.run(

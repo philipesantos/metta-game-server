@@ -57,7 +57,7 @@ class TestDropFunctionDefinition(unittest.TestCase):
 
         drop = DropFunctionPattern("coin")
         result_drop = metta.run(f"!{drop.to_metta()}")
-        self.assertEqual(unwrap_first_match(result_drop), "Dropped")
+        self.assertEqual(unwrap_first_match(result_drop).text, "Dropped")
 
     def test_drop_missing_item(self):
         metta = get_test_metta()
@@ -76,7 +76,7 @@ class TestDropFunctionDefinition(unittest.TestCase):
         drop = DropFunctionPattern("coin")
         result_drop = metta.run(f"!{drop.to_metta()}")
         self.assertEqual(
-            unwrap_first_match(result_drop),
+            unwrap_first_match(result_drop).text,
             "You do not have that item",
         )
 

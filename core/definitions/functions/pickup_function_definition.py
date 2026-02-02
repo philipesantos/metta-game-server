@@ -2,6 +2,7 @@ from core.definitions.function_definition import FunctionDefinition
 from core.patterns.events.pickup_event_pattern import PickUpEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
+from core.patterns.facts.response_fact_pattern import ResponseFactPattern
 from core.patterns.functions.first_function_pattern import FirstFunctionPattern
 from core.patterns.functions.last_function_pattern import LastFunctionPattern
 from core.patterns.functions.location_path_function_pattern import (
@@ -33,7 +34,7 @@ class PickUpFunctionDefinition(FunctionDefinition):
             f"            (let $last_location {last_location.to_metta()}\n"
             f"                (if (exists {state_at_match.to_metta()})\n"
             f"                    {pickup_trigger.to_metta()}\n"
-            f'                    "There is no such item"\n'
+            f'                    {ResponseFactPattern(100, '"There is no such item"').to_metta()}\n'
             f"                )\n"
             f"            )\n"
             f"        )\n"

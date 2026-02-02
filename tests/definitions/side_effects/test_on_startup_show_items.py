@@ -33,7 +33,8 @@ class TestOnStartupShowItems(unittest.TestCase):
 
         trigger = TriggerFunctionPattern(StartupEventPattern())
         result = metta.run(f"!{trigger.to_metta()}")
-        result_text = unwrap_first_match(result)
+        result_value = unwrap_first_match(result)
+        result_text = result_value.text if hasattr(result_value, "text") else result_value
 
         self.assertIn("You see:", result_text)
         self.assertIn("coin", result_text)

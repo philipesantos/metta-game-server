@@ -1,4 +1,117 @@
 from hyperon import MeTTa
+from utils.response import ResponseText, parse_response_atom
+
+
+def _find_response_atoms(output: str) -> list[str]:
+    atoms = []
+    index = 0
+    length = len(output)
+    in_string = False
+    escape = False
+
+    while index < length:
+        char = output[index]
+        if in_string:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                in_string = False
+            index += 1
+            continue
+
+        if char == '"':
+            in_string = True
+            index += 1
+            continue
+
+        if output.startswith("(Response", index):
+            atom, next_index = _extract_sexpr(output, index)
+            if atom:
+                atoms.append(atom)
+                index = next_index
+                continue
+
+        index += 1
+
+    return atoms
+
+
+def _extract_sexpr(text: str, start_index: int) -> tuple[str | None, int]:
+    depth = 0
+    index = start_index
+    length = len(text)
+    in_string = False
+    escape = False
+
+    while index < length:
+        char = text[index]
+        if in_string:
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == '"':
+                in_string = False
+            index += 1
+            continue
+
+        if char == '"':
+            in_string = True
+            index += 1
+            continue
+
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                return text[start_index : index + 1], index + 1
+
+        index += 1
+
+    return None, start_index
+
+
+def _parse_response_atom(atom: str) -> ResponseText | None:
+    return parse_response_atom(atom)
+
+
+def _format_metta_output(output: str) -> str:
+    if isinstance(output, str):
+        atoms = _find_response_atoms(output)
+        if not atoms:
+            return output
+        responses: list[ResponseText] = []
+        for atom in atoms:
+            response = _parse_response_atom(atom)
+            if response and response.text:
+                responses.append(response)
+        responses.sort(key=lambda item: (-item.priority, item.text))
+        return "\n".join(item.text for item in responses)
+
+    responses: list[ResponseText] = []
+    for atom in _iter_metta_atoms(output):
+        response = _parse_response_atom(atom)
+        if response and response.text:
+            responses.append(response)
+    if not responses:
+        return str(output)
+    responses.sort(key=lambda item: (-item.priority, item.text))
+    return "\n".join(item.text for item in responses)
+
+
+def _iter_metta_atoms(output):
+    if isinstance(output, list):
+        for row in output:
+            if isinstance(row, list):
+                for atom in row:
+                    yield atom
+            else:
+                yield row
+        return
+    yield output
 
 from core.definitions.facts.character_fact_definition import CharacterFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
@@ -71,7 +184,10 @@ def main():
 
     print(metta_code)
     print(metta.run(metta_code))
-    print(metta.run(f"!{TriggerFunctionPattern(StartupEventPattern()).to_metta()}"))
+    startup_output = metta.run(
+        f"!{TriggerFunctionPattern(StartupEventPattern()).to_metta()}"
+    )
+    print(_format_metta_output(startup_output))
     print(f"\n--- Command Catalog ({len(command_catalog)}) ---")
     for entry in command_catalog:
         print(f"{entry.utterance} -> {entry.metta}")
@@ -96,7 +212,8 @@ def main():
             print(f"[NL] {stripped} -> {match.entry.metta} ({match.score:.3f})")
             metta_query = f"!{match.entry.metta}"
 
-        print(metta.run(metta_query))
+        result_output = metta.run(metta_query)
+        print(_format_metta_output(result_output))
         print(metta.run(f"!{SynchronizeTickFunctionPattern().to_metta()}"))
 
 

@@ -50,7 +50,7 @@ class TestCompassModuleOnMovePrintDirections(unittest.TestCase):
 
         trigger = TriggerFunctionPattern(MoveEventPattern("glade", "cave"))
         result = metta.run(f"!{trigger.to_metta()}")
-        result_text = unwrap_first_match(result)
+        result_text = unwrap_first_match(result).text
 
         self.assertIn("You can go:", result_text)
         self.assertIn("north", result_text)
