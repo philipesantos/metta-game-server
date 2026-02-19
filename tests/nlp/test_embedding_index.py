@@ -1,6 +1,28 @@
 import unittest
+from unittest.mock import patch
+
+import numpy as np
 
 from core.nlp import CommandEntry, EmbeddingIndex
+
+
+class _FakeSentenceTransformer:
+    def __init__(self, vectors: dict[str, np.ndarray]):
+        self._vectors = vectors
+
+    def encode(
+        self,
+        texts,
+        normalize_embeddings=True,
+        convert_to_numpy=True,
+        show_progress_bar=False,
+    ):
+        vectors = np.array([self._vectors[text] for text in texts], dtype=np.float32)
+        if normalize_embeddings:
+            norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+            norms[norms == 0.0] = 1.0
+            vectors = vectors / norms
+        return vectors if convert_to_numpy else vectors.tolist()
 
 
 class TestEmbeddingIndex(unittest.TestCase):
@@ -19,12 +41,126 @@ class TestEmbeddingIndex(unittest.TestCase):
                 slots={"item": "compass"},
             ),
         ]
+        vectors = {
+            "pickup compass": np.array([1.0, 0.0], dtype=np.float32),
+            "drop compass": np.array([0.8, 0.2], dtype=np.float32),
+            "pickup compass now": np.array([0.99, 0.01], dtype=np.float32),
+        }
 
-        index = EmbeddingIndex(entries, model_name="BAAI/bge-small-en-v1.5")
-        match = index.match("pickup compass")
+        with patch(
+            "core.nlp.embedding_index.SentenceTransformer",
+            return_value=_FakeSentenceTransformer(vectors),
+        ):
+            index = EmbeddingIndex(entries, model_name="fake")
+            match = index.match("pickup compass now")
 
         self.assertIsNotNone(match)
         self.assertEqual(match.entry.utterance, "pickup compass")
+
+    def test_returns_none_for_low_confidence_match(self):
+        entries = [
+            CommandEntry(
+                utterance="inventory",
+                intent="inventory",
+                metta="(inventory)",
+                slots={},
+            )
+        ]
+        vectors = {
+            "inventory": np.array([1.0, 0.0], dtype=np.float32),
+            "nonsense words": np.array([0.2, 1.0], dtype=np.float32),
+        }
+
+        with patch(
+            "core.nlp.embedding_index.SentenceTransformer",
+            return_value=_FakeSentenceTransformer(vectors),
+        ):
+            index = EmbeddingIndex(entries, model_name="fake", min_score=0.6)
+            match = index.match("nonsense words")
+
+        self.assertIsNone(match)
+
+    def test_returns_none_for_ambiguous_match(self):
+        entries = [
+            CommandEntry(
+                utterance="go north",
+                intent="move_towards",
+                metta="(move-towards (north))",
+                slots={"direction": "north"},
+            ),
+            CommandEntry(
+                utterance="go south",
+                intent="move_towards",
+                metta="(move-towards (south))",
+                slots={"direction": "south"},
+            ),
+        ]
+        vectors = {
+            "go north": np.array([1.0, 0.0], dtype=np.float32),
+            "go south": np.array([0.0, 1.0], dtype=np.float32),
+            "go maybe": np.array([0.71, 0.70], dtype=np.float32),
+        }
+
+        with patch(
+            "core.nlp.embedding_index.SentenceTransformer",
+            return_value=_FakeSentenceTransformer(vectors),
+        ):
+            index = EmbeddingIndex(
+                entries,
+                model_name="fake",
+                min_margin=0.05,
+                high_confidence_score=0.99,
+            )
+            match = index.match("go maybe")
+
+        self.assertIsNone(match)
+
+    def test_returns_none_when_no_token_overlap_and_not_high_confidence(self):
+        entries = [
+            CommandEntry(
+                utterance="inventory",
+                intent="inventory",
+                metta="(inventory)",
+                slots={},
+            )
+        ]
+        vectors = {
+            "inventory": np.array([1.0, 0.0], dtype=np.float32),
+            "hello there": np.array([0.8, 0.6], dtype=np.float32),
+        }
+
+        with patch(
+            "core.nlp.embedding_index.SentenceTransformer",
+            return_value=_FakeSentenceTransformer(vectors),
+        ):
+            index = EmbeddingIndex(entries, model_name="fake", high_confidence_score=0.9)
+            match = index.match("hello there")
+
+        self.assertIsNone(match)
+
+    def test_allows_no_token_overlap_when_score_is_high_confidence(self):
+        entries = [
+            CommandEntry(
+                utterance="inventory",
+                intent="inventory",
+                metta="(inventory)",
+                slots={},
+            )
+        ]
+        vectors = {
+            "inventory": np.array([1.0, 0.0], dtype=np.float32),
+            "status please": np.array([1.0, 0.0], dtype=np.float32),
+        }
+
+        with patch(
+            "core.nlp.embedding_index.SentenceTransformer",
+            return_value=_FakeSentenceTransformer(vectors),
+        ):
+            index = EmbeddingIndex(entries, model_name="fake", high_confidence_score=0.9)
+            match = index.match("status please")
+
+        self.assertIsNotNone(match)
+        self.assertEqual(match.entry.utterance, "inventory")
 
 
 if __name__ == "__main__":

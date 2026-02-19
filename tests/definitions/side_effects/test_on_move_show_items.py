@@ -17,7 +17,7 @@ class TestOnMoveShowItems(unittest.TestCase):
     def test_returns_items_when_present(self):
         metta = get_test_metta()
 
-        metta.run(ItemFactDefinition("coin", "picked", "dropped").to_metta())
+        metta.run(ItemFactDefinition("coin", "picked", "dropped", "examined").to_metta())
         metta.run(StateWrapperDefinition(AtFactPattern("coin", "glade")).to_metta())
         metta.run(
             TriggerFunctionDefinition(

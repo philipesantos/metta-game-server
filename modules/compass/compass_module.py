@@ -35,6 +35,7 @@ class CompassModule(Module):
             key="compass",
             text_pickup="You got the compass",
             text_drop="You dropped the compass",
+            text_examine="An old compass etched with cardinal marks.",
         )
         world.add_definition(item_compass)
         world.add_definition(CompassDirectionsFunctionDefinition())

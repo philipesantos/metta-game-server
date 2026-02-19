@@ -20,7 +20,7 @@ class TestOnStartupShowItems(unittest.TestCase):
 
         character = CharacterFactPattern("player", "John")
 
-        metta.run(ItemFactDefinition("coin", "picked", "dropped").to_metta())
+        metta.run(ItemFactDefinition("coin", "picked", "dropped", "examined").to_metta())
         metta.run(
             StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
         )

@@ -2,6 +2,7 @@ import unittest
 
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.patterns.events.drop_event_pattern import DropEventPattern
+from core.patterns.events.examine_event_pattern import ExamineEventPattern
 from core.patterns.events.pickup_event_pattern import PickUpEventPattern
 from core.patterns.facts.item_fact_pattern import ItemFactPattern
 from core.patterns.facts.location_fact_pattern import LocationFactPattern
@@ -18,8 +19,9 @@ class TestItemFactDefinition(unittest.TestCase):
         key = "compass"
         text_pickup = "You pick up the compass."
         text_drop = "You drop the compass."
+        text_examine = "The compass needle points north."
 
-        metta.run(ItemFactDefinition(key, text_pickup, text_drop).to_metta())
+        metta.run(ItemFactDefinition(key, text_pickup, text_drop, text_examine).to_metta())
 
         result_type = metta.run(f"!(get-type {key})")
         self.assertEqual(unwrap_first_match(result_type), Type.ITEM.value)
@@ -35,6 +37,10 @@ class TestItemFactDefinition(unittest.TestCase):
         item_drop_trigger = TriggerFunctionPattern(DropEventPattern(key, "glade"))
         result_drop_trigger = metta.run(f"!{item_drop_trigger.to_metta()}")
         self.assertEqual(unwrap_first_match(result_drop_trigger).text, text_drop)
+
+        item_examine_trigger = TriggerFunctionPattern(ExamineEventPattern(key))
+        result_examine_trigger = metta.run(f"!{item_examine_trigger.to_metta()}")
+        self.assertEqual(unwrap_first_match(result_examine_trigger).text, text_examine)
 
         item_no_match = LocationFactPattern("bottle")
         result_no_match = metta.run(f"!(match &self {item_no_match.to_metta()} True)")

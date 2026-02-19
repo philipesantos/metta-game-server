@@ -15,7 +15,11 @@ def main():
     metta_code = world.to_metta()
     command_catalog = build_command_catalog(world)
     embedding_index = EmbeddingIndex(
-        command_catalog, model_name="BAAI/bge-small-en-v1.5"
+        command_catalog,
+        model_name="BAAI/bge-small-en-v1.5",
+        min_score=0.55,
+        min_margin=0.06,
+        high_confidence_score=0.82,
     )
 
     print(metta_code)

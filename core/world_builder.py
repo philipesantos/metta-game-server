@@ -2,6 +2,9 @@ from core.definitions.facts.character_fact_definition import CharacterFactDefini
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.definitions.functions.drop_function_definition import DropFunctionDefinition
+from core.definitions.functions.examine_function_definition import (
+    ExamineFunctionDefinition,
+)
 from core.definitions.functions.exists_function_definition import (
     ExistsFunctionDefinition,
 )
@@ -116,6 +119,7 @@ def build_world() -> World:
     world.add_definition(MoveTowardsFunctionDefinition(character_player.to_pattern()))
     world.add_definition(PickUpFunctionDefinition(character_player.to_pattern()))
     world.add_definition(DropFunctionDefinition(character_player.to_pattern()))
+    world.add_definition(ExamineFunctionDefinition(character_player.to_pattern()))
     world.add_definition(UseFunctionDefinition(character_player.to_pattern()))
     world.add_definition(SynchronizeTickFunctionDefinition())
 

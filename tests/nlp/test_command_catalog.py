@@ -14,6 +14,9 @@ from core.definitions.functions.move_towards_function_definition import (
 from core.definitions.functions.pickup_function_definition import (
     PickUpFunctionDefinition,
 )
+from core.definitions.functions.examine_function_definition import (
+    ExamineFunctionDefinition,
+)
 from core.definitions.functions.use_function_definition import UseFunctionDefinition
 from core.nlp import build_command_catalog
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
@@ -25,8 +28,10 @@ class TestCommandCatalog(unittest.TestCase):
         character = CharacterFactPattern("player", "John")
 
         world = World()
-        world.add_definition(ItemFactDefinition("crescent_rock", "pick", "drop"))
-        world.add_definition(ItemFactDefinition("compass", "pick", "drop"))
+        world.add_definition(
+            ItemFactDefinition("crescent_rock", "pick", "drop", "examine")
+        )
+        world.add_definition(ItemFactDefinition("compass", "pick", "drop", "examine"))
         world.add_definition(
             LocationFactDefinition("camping_site", "You are at the camp.")
         )
@@ -35,6 +40,7 @@ class TestCommandCatalog(unittest.TestCase):
         world.add_definition(MoveToFunctionDefinition(character))
         world.add_definition(MoveTowardsFunctionDefinition(character))
         world.add_definition(PickUpFunctionDefinition(character))
+        world.add_definition(ExamineFunctionDefinition(character))
         world.add_definition(UseFunctionDefinition(character))
 
         catalog = build_command_catalog(world)
@@ -51,6 +57,14 @@ class TestCommandCatalog(unittest.TestCase):
         self.assertEqual(
             utterance_to_metta.get("use compass on crescent rock"),
             "(use (compass crescent_rock))",
+        )
+        self.assertEqual(
+            utterance_to_metta.get("examine compass"),
+            "(examine (compass))",
+        )
+        self.assertEqual(
+            utterance_to_metta.get("check compass"),
+            "(examine (compass))",
         )
 
 
