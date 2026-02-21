@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from itertools import product
 
+from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.nlp.nl_spec import NLSpec
@@ -39,6 +40,13 @@ def _resolve_locations(world) -> list[SlotValue]:
     return [SlotValue(key=k, text=_humanize_key(k)) for k in keys]
 
 
+def _resolve_containers(world) -> list[SlotValue]:
+    keys = sorted(
+        {d.key for d in world.definitions if isinstance(d, ContainerFactDefinition)}
+    )
+    return [SlotValue(key=k, text=_humanize_key(k)) for k in keys]
+
+
 def _resolve_directions(_world) -> list[SlotValue]:
     keys = [direction.value for direction in Direction]
     return [SlotValue(key=k, text=k) for k in keys]
@@ -47,6 +55,7 @@ def _resolve_directions(_world) -> list[SlotValue]:
 DEFAULT_SLOT_RESOLVERS = {
     "item": _resolve_items,
     "location": _resolve_locations,
+    "container": _resolve_containers,
     "direction": _resolve_directions,
 }
 

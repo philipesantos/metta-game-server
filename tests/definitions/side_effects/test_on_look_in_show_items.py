@@ -1,0 +1,49 @@
+import unittest
+
+from core.definitions.facts.item_fact_definition import ItemFactDefinition
+from core.definitions.functions.trigger_function_definition import (
+    TriggerFunctionDefinition,
+)
+from core.definitions.side_effects.on_look_in_show_items import OnLookInShowItems
+from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
+from core.patterns.events.look_in_event_pattern import LookInEventPattern
+from core.patterns.facts.at_fact_pattern import AtFactPattern
+from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
+from tests.utils.metta import get_test_metta
+from tests.utils.utils import unwrap_first_match
+
+
+class TestOnLookInShowItems(unittest.TestCase):
+    def test_shows_items_inside_container(self):
+        metta = get_test_metta()
+
+        metta.run(ItemFactDefinition("coin", "picked", "dropped", "examined").to_metta())
+        metta.run(StateWrapperDefinition(AtFactPattern("coin", "chest")).to_metta())
+        metta.run(
+            TriggerFunctionDefinition(
+                LookInEventPattern("$container"), [OnLookInShowItems()]
+            ).to_metta()
+        )
+
+        trigger_look_in = TriggerFunctionPattern(LookInEventPattern("chest"))
+        result = metta.run(f"!{trigger_look_in.to_metta()}")
+
+        self.assertEqual(unwrap_first_match(result).text, "Inside: [coin]")
+
+    def test_shows_empty_message_when_no_items_inside(self):
+        metta = get_test_metta()
+
+        metta.run(
+            TriggerFunctionDefinition(
+                LookInEventPattern("$container"), [OnLookInShowItems()]
+            ).to_metta()
+        )
+
+        trigger_look_in = TriggerFunctionPattern(LookInEventPattern("chest"))
+        result = metta.run(f"!{trigger_look_in.to_metta()}")
+
+        self.assertEqual(unwrap_first_match(result).text, "There is nothing inside")
+
+
+if __name__ == "__main__":
+    unittest.main()

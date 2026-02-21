@@ -1,4 +1,6 @@
 from core.definitions.facts.character_fact_definition import CharacterFactDefinition
+from core.definitions.facts.container_fact_definition import ContainerFactDefinition
+from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.definitions.functions.drop_function_definition import DropFunctionDefinition
@@ -13,6 +15,9 @@ from core.definitions.functions.inventory_function_definition import (
     InventoryFunctionPattern as InventoryFunctionDefinition,
 )
 from core.definitions.functions.last_function_definition import LastFunctionDefinition
+from core.definitions.functions.look_in_function_definition import (
+    LookInFunctionDefinition,
+)
 from core.definitions.functions.location_path_function_definition import (
     LocationPathFunctionDefinition,
 )
@@ -39,6 +44,7 @@ from core.definitions.side_effects.on_move_show_items import OnMoveShowItems
 from core.definitions.side_effects.on_move_update_at import OnMoveUpdateAt
 from core.definitions.side_effects.on_move_update_tick import OnMoveUpdateTick
 from core.definitions.side_effects.on_pickup_update_at import OnPickUpUpdateAt
+from core.definitions.side_effects.on_look_in_show_items import OnLookInShowItems
 from core.definitions.side_effects.on_startup_show_items import OnStartupShowItems
 from core.definitions.side_effects.on_use_do_nothing import OnUseDoNothing
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
@@ -47,6 +53,7 @@ from core.patterns.events.move_event_pattern import MoveEventPattern
 from core.patterns.events.pickup_event_pattern import PickUpEventPattern
 from core.patterns.events.startup_event_pattern import StartupEventPattern
 from core.patterns.events.use_event_pattern import UseEventPattern
+from core.patterns.events.look_in_event_pattern import LookInEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.tick_fact_pattern import TickFactPattern
 from core.world import World
@@ -106,6 +113,13 @@ def build_world() -> World:
     location_path_9 = LocationFactDefinition(
         key="path_9", text_move_to="You are in the path 9."
     )
+    container_hollow_tree_trunk = ContainerFactDefinition(key="hollow_tree_trunk")
+    item_rock_tablet_h = ItemFactDefinition(
+        key="rock_tablet_h",
+        text_pickup="You take the rock tablet engraved with the letter H.",
+        text_drop="You place the rock tablet engraved with the letter H down.",
+        text_examine="A rough stone tablet carved with the letter H.",
+    )
 
     world = World()
 
@@ -119,6 +133,7 @@ def build_world() -> World:
     world.add_definition(MoveTowardsFunctionDefinition(character_player.to_pattern()))
     world.add_definition(PickUpFunctionDefinition(character_player.to_pattern()))
     world.add_definition(DropFunctionDefinition(character_player.to_pattern()))
+    world.add_definition(LookInFunctionDefinition(character_player.to_pattern()))
     world.add_definition(ExamineFunctionDefinition(character_player.to_pattern()))
     world.add_definition(UseFunctionDefinition(character_player.to_pattern()))
     world.add_definition(SynchronizeTickFunctionDefinition())
@@ -143,6 +158,12 @@ def build_world() -> World:
         TriggerFunctionDefinition(
             DropEventPattern("$what", "$where"),
             [OnDropUpdateAt(character_player.to_pattern())],
+        )
+    )
+    world.add_definition(
+        TriggerFunctionDefinition(
+            LookInEventPattern("$container"),
+            [OnLookInShowItems()],
         )
     )
     world.add_definition(
@@ -179,6 +200,8 @@ def build_world() -> World:
     world.add_definition(location_path_7)
     world.add_definition(location_path_8)
     world.add_definition(location_path_9)
+    world.add_definition(container_hollow_tree_trunk)
+    world.add_definition(item_rock_tablet_h)
 
     add_route(world, location_glade, Direction.SOUTH, location_path_1)
     add_route(world, location_path_1, Direction.WEST, location_path_2)
@@ -201,6 +224,16 @@ def build_world() -> World:
     )
 
     world.add_definition(StateWrapperDefinition(TickFactPattern("1")))
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(container_hollow_tree_trunk.key, location_path_3.key)
+        )
+    )
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(item_rock_tablet_h.key, container_hollow_tree_trunk.key)
+        )
+    )
 
     CompassModule(character_player.to_pattern(), location_glade.key).apply(world)
     CaveEntranceModule(location_path_2.key, location_cave.key).apply(world)

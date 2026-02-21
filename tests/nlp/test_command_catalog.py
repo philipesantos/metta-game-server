@@ -1,9 +1,13 @@
 import unittest
 
+from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.functions.inventory_function_definition import (
     InventoryFunctionPattern,
+)
+from core.definitions.functions.look_in_function_definition import (
+    LookInFunctionDefinition,
 )
 from core.definitions.functions.move_to_function_definition import (
     MoveToFunctionDefinition,
@@ -36,10 +40,12 @@ class TestCommandCatalog(unittest.TestCase):
             LocationFactDefinition("camping_site", "You are at the camp.")
         )
         world.add_definition(LocationFactDefinition("glade", "You are in the glade."))
+        world.add_definition(ContainerFactDefinition("wooden_chest"))
         world.add_definition(InventoryFunctionPattern(character))
         world.add_definition(MoveToFunctionDefinition(character))
         world.add_definition(MoveTowardsFunctionDefinition(character))
         world.add_definition(PickUpFunctionDefinition(character))
+        world.add_definition(LookInFunctionDefinition(character))
         world.add_definition(ExamineFunctionDefinition(character))
         world.add_definition(UseFunctionDefinition(character))
 
@@ -65,6 +71,10 @@ class TestCommandCatalog(unittest.TestCase):
         self.assertEqual(
             utterance_to_metta.get("check compass"),
             "(examine (compass))",
+        )
+        self.assertEqual(
+            utterance_to_metta.get("look in wooden chest"),
+            "(look-in (wooden_chest))",
         )
 
 

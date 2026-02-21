@@ -1,5 +1,6 @@
 import unittest
 
+from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.functions.trigger_function_definition import (
     TriggerFunctionDefinition,
@@ -18,7 +19,11 @@ class TestOnMoveShowItems(unittest.TestCase):
         metta = get_test_metta()
 
         metta.run(ItemFactDefinition("coin", "picked", "dropped", "examined").to_metta())
+        metta.run(ContainerFactDefinition("hollow_tree_trunk").to_metta())
         metta.run(StateWrapperDefinition(AtFactPattern("coin", "glade")).to_metta())
+        metta.run(
+            StateWrapperDefinition(AtFactPattern("hollow_tree_trunk", "glade")).to_metta()
+        )
         metta.run(
             TriggerFunctionDefinition(
                 MoveEventPattern("$from", "$to"), [OnMoveShowItems()]
@@ -34,6 +39,7 @@ class TestOnMoveShowItems(unittest.TestCase):
 
         self.assertIn("You see:", result_text)
         self.assertIn("coin", result_text)
+        self.assertIn("hollow_tree_trunk", result_text)
 
     def test_returns_empty_when_no_items(self):
         metta = get_test_metta()
