@@ -44,6 +44,32 @@ class TestCompassModuleOnPickupPrintDirections(unittest.TestCase):
         self.assertIn("You can go:", result_text)
         self.assertIn("north", result_text)
 
+    def test_pickup_uses_player_location_even_when_event_where_is_container(self):
+        metta = get_test_metta()
+
+        character = CharacterFactPattern("player", "John")
+
+        metta.run(CompassDirectionsFunctionDefinition().to_metta())
+        metta.run(
+            TriggerFunctionDefinition(
+                PickUpEventPattern("compass", "$where"),
+                [CompassModuleOnPickupPrintDirections(character)],
+            ).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
+        )
+        metta.run(RouteFactDefinition("glade", "north", "cave").to_metta())
+
+        trigger = TriggerFunctionPattern(
+            PickUpEventPattern("compass", "unconscious_person")
+        )
+        result = metta.run(f"!{trigger.to_metta()}")
+        result_text = unwrap_first_match(result).text
+
+        self.assertIn("You can go:", result_text)
+        self.assertIn("north", result_text)
+
 
 if __name__ == "__main__":
     unittest.main()

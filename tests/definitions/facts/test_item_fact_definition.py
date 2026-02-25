@@ -21,8 +21,21 @@ class TestItemFactDefinition(unittest.TestCase):
         text_pickup = "You pick up the compass."
         text_drop = "You drop the compass."
         text_examine = "The compass needle points north."
+        name = "Old compass"
+        text_enter = "An old compass lies on a mossy stone."
+        text_look = "Inside, an old compass rests against the lining."
 
-        metta.run(ItemFactDefinition(key, text_pickup, text_drop, text_examine).to_metta())
+        metta.run(
+            ItemFactDefinition(
+                key,
+                text_pickup,
+                text_drop,
+                text_examine,
+                name=name,
+                text_enter=text_enter,
+                text_look=text_look,
+            ).to_metta()
+        )
 
         result_type = metta.run(f"!(get-type {key})")
         self.assertEqual(unwrap_first_match(result_type), Type.ITEM.value)
@@ -46,6 +59,15 @@ class TestItemFactDefinition(unittest.TestCase):
         item_examine_trigger = TriggerFunctionPattern(ExamineEventPattern(key))
         result_examine_trigger = metta.run(f"!{item_examine_trigger.to_metta()}")
         self.assertEqual(unwrap_first_match(result_examine_trigger).text, text_examine)
+
+        result_enter_text = metta.run(f"!(match &self (ItemEnterText {key} $text) $text)")
+        self.assertEqual(unwrap_first_match(result_enter_text), text_enter)
+
+        result_look_text = metta.run(f"!(match &self (ItemLookText {key} $text) $text)")
+        self.assertEqual(unwrap_first_match(result_look_text), text_look)
+
+        result_name = metta.run(f"!(match &self (ItemName {key} $name) $name)")
+        self.assertEqual(unwrap_first_match(result_name), name)
 
         item_no_match = LocationFactPattern("bottle")
         result_no_match = metta.run(f"!(match &self {item_no_match.to_metta()} True)")

@@ -13,6 +13,7 @@ from core.patterns.facts.character_fact_pattern import CharacterFactPattern
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
 from tests.utils.metta import get_test_metta
 from tests.utils.utils import unwrap_first_match
+from utils.response import format_metta_output
 
 
 class TestOnStartupShowItems(unittest.TestCase):
@@ -21,7 +22,15 @@ class TestOnStartupShowItems(unittest.TestCase):
 
         character = CharacterFactPattern("player", "John")
 
-        metta.run(ItemFactDefinition("coin", "picked", "dropped", "examined").to_metta())
+        metta.run(
+            ItemFactDefinition(
+                "coin",
+                "picked",
+                "dropped",
+                "examined",
+                text_enter="A silver coin glints in the grass.",
+            ).to_metta()
+        )
         metta.run(ContainerFactDefinition("hollow_tree_trunk").to_metta())
         metta.run(
             StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
@@ -38,14 +47,10 @@ class TestOnStartupShowItems(unittest.TestCase):
 
         trigger = TriggerFunctionPattern(StartupEventPattern())
         result = metta.run(f"!{trigger.to_metta()}")
-        result_value = unwrap_first_match(result)
-        result_text = (
-            result_value.text if hasattr(result_value, "text") else result_value
-        )
+        result_text = format_metta_output(result)
 
-        self.assertIn("You see:", result_text)
-        self.assertIn("coin", result_text)
-        self.assertIn("hollow_tree_trunk", result_text)
+        self.assertIn("A silver coin glints in the grass.", result_text)
+        self.assertIn("You notice hollow_tree_trunk.", result_text)
 
     def test_returns_empty_when_no_items(self):
         metta = get_test_metta()

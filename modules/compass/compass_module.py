@@ -26,16 +26,20 @@ from modules.module import Module
 
 
 class CompassModule(Module):
-    def __init__(self, character: CharacterFactPattern, compass_where: str):
+    def __init__(self, character: CharacterFactPattern, initial_location: str, compass_where: str):
         self.character: CharacterFactPattern = character
+        self.initial_location: str = initial_location
         self.compass_where: str = compass_where
 
     def apply(self, world: World) -> None:
         item_compass = ItemFactDefinition(
             key="compass",
+            name="Compass",
             text_pickup="You got the compass",
             text_drop="You dropped the compass",
             text_examine="An old compass etched with cardinal marks.",
+            text_enter="An old compass lies here, its needle trembling.",
+            text_look="Inside, an old compass rests against the lining.",
         )
         world.add_definition(item_compass)
         world.add_definition(CompassDirectionsFunctionDefinition())
@@ -65,14 +69,14 @@ class CompassModule(Module):
         for definition in world.definitions:
             if (
                 isinstance(definition, RouteFactDefinition)
-                and definition.location_from == self.compass_where
+                and definition.location_from == self.initial_location
             ):
                 destinations.add(definition.location_to)
 
         for destination in destinations:
             world.add_definition(
                 RouteBlockFactDefinition(
-                    self.compass_where,
+                    self.initial_location,
                     destination,
                     route_block_reason,
                 )

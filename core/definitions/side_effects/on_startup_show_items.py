@@ -19,19 +19,13 @@ class OnStartupShowItems(SideEffectDefinition):
         # fmt: off
         return (
             f"(let $where (match &self {state_at_player.to_metta()} $where)\n"
-            f"    (let $result (collapse (match &self {state_at_what.to_metta()}\n"
+            f"    (collapse (match &self {state_at_what.to_metta()}\n"
             f"        (case (get-type $what) (\n"
-            f"            ({Type.ITEM.value} $what)\n"
-            f"            ({Type.CONTAINER.value} $what)\n"
+            f"            ({Type.ITEM.value} (match &self (ItemEnterText $what $text) {ResponseFactPattern(20, '$text').to_metta()}))\n"
+            f"            ({Type.CONTAINER.value} (match &self (ContainerEnterText $what $text) {ResponseFactPattern(20, '$text').to_metta()}))\n"
             f"            ($_ Empty)\n"
             f"        ))\n"
             f"    ))\n"
-            f"        (case $result\n"
-            f"        (\n"
-            f"            (() Empty)\n"
-            f"            ($_ {ResponseFactPattern(20, '(Text \"You see: \" $result)').to_metta()})\n"
-            f"        ))\n"
-            f"    )\n"
             f")"
         )
         # fmt: on

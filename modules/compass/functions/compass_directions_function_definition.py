@@ -9,7 +9,7 @@ class CompassDirectionsFunctionDefinition(FunctionDefinition):
         # fmt: off
         return (
             f"(= (compass-directions ($from))\n"
-            f"    {ResponseFactPattern(10, f'(Text \"You can go: \" (collapse (match &self {route.to_metta()} $direction)))').to_metta()}\n"
+            f"    {ResponseFactPattern(5, f'(Text \"You can go: \" (collapse (match &self {route.to_metta()} $direction)))').to_metta()}\n"
             f")"
         )
         # fmt: on

@@ -213,9 +213,14 @@ def format_metta_output(output: Any) -> str:
     responses: list[ResponseText] = []
     for atom in _iter_metta_atoms(output):
         response = parse_response_atom(atom)
+        if response is None:
+            response = parse_response_atom(str(atom))
         if response and response.text:
             responses.append(response)
     if not responses:
+        fallback_from_string = format_metta_output(str(output))
+        if fallback_from_string != str(output):
+            return fallback_from_string
         return str(output)
     responses.sort(key=lambda item: (-item.priority, item.text))
     return "\n".join(item.text for item in responses)
@@ -295,11 +300,20 @@ def _extract_sexpr(text: str, start_index: int) -> tuple[str | None, int]:
 
 def _iter_metta_atoms(output: Any):
     if isinstance(output, list):
-        for row in output:
-            if isinstance(row, list):
-                for atom in row:
-                    yield atom
-            else:
-                yield row
+        for item in output:
+            yield from _iter_metta_atoms(item)
         return
+
+    if hasattr(output, "get_children"):
+        children = output.get_children()
+        if not children:
+            yield output
+            return
+        if children and _atom_name(children[0]) == "Response":
+            yield output
+            return
+        for child in children:
+            yield from _iter_metta_atoms(child)
+        return
+
     yield output

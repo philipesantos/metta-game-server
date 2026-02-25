@@ -18,15 +18,21 @@ class CaveEntranceModule(Module):
     def apply(self, world: World) -> None:
         crescent_rock = ItemFactDefinition(
             key="crescent_rock",
+            name="Crescent-moon rock",
             text_pickup="You pick up a crescent-moon rock.",
             text_drop="You drop the crescent-moon rock.",
             text_examine="The stone is cool and shaped like a crescent moon.",
+            text_enter="A crescent-moon rock rests near your feet.",
+            text_look="Inside, a crescent-moon rock catches the light.",
         )
         cave_door = ItemFactDefinition(
             key="cave_door",
+            name="Carved stone door",
             text_pickup="",
             text_drop="",
             text_examine="A carved door with a crescent-shaped recess.",
+            text_enter="A carved stone door stands sealed in the wall.",
+            text_look="Inside, a carved stone door blocks the passage.",
             can_pickup=False,
         )
         world.add_definition(crescent_rock)

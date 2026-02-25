@@ -44,6 +44,9 @@ from core.definitions.side_effects.on_move_show_items import OnMoveShowItems
 from core.definitions.side_effects.on_move_update_at import OnMoveUpdateAt
 from core.definitions.side_effects.on_move_update_tick import OnMoveUpdateTick
 from core.definitions.side_effects.on_pickup_update_at import OnPickUpUpdateAt
+from core.definitions.side_effects.on_look_in_show_container_description import (
+    OnLookInShowContainerDescription,
+)
 from core.definitions.side_effects.on_look_in_show_items import OnLookInShowItems
 from core.definitions.side_effects.on_startup_show_items import OnStartupShowItems
 from core.definitions.side_effects.on_use_do_nothing import OnUseDoNothing
@@ -66,10 +69,13 @@ def build_world() -> World:
     character_player = CharacterFactDefinition(key="player", name="John")
 
     location_glade = LocationFactDefinition(
-        key="glade", text_move_to="You are in the Glade."
+        key="glade", text_move_to="You are in the glade."
     )
     location_cave = LocationFactDefinition(
         key="cave", text_move_to="You are in the cave."
+    )
+    location_beach = LocationFactDefinition(
+        key="beach", text_move_to="You are in the beach."
     )
     location_boat = LocationFactDefinition(
         key="boat", text_move_to="You are in the boat."
@@ -83,9 +89,6 @@ def build_world() -> World:
     location_camping_site = LocationFactDefinition(
         key="camping_site", text_move_to="You are in the camping site."
     )
-    location_monolith = LocationFactDefinition(
-        key="monolith", text_move_to="You are in the monolith."
-    )
     location_path_1 = LocationFactDefinition(
         key="path_1", text_move_to="You are in the path 1."
     )
@@ -97,28 +100,6 @@ def build_world() -> World:
     )
     location_path_4 = LocationFactDefinition(
         key="path_4", text_move_to="You are in the path 4."
-    )
-    location_path_5 = LocationFactDefinition(
-        key="path_5", text_move_to="You are in the path 5."
-    )
-    location_path_6 = LocationFactDefinition(
-        key="path_6", text_move_to="You are in the path 6."
-    )
-    location_path_7 = LocationFactDefinition(
-        key="path_7", text_move_to="You are in the path 7."
-    )
-    location_path_8 = LocationFactDefinition(
-        key="path_8", text_move_to="You are in the path 8."
-    )
-    location_path_9 = LocationFactDefinition(
-        key="path_9", text_move_to="You are in the path 9."
-    )
-    container_hollow_tree_trunk = ContainerFactDefinition(key="hollow_tree_trunk")
-    item_rock_tablet_h = ItemFactDefinition(
-        key="rock_tablet_h",
-        text_pickup="You take the rock tablet engraved with the letter H.",
-        text_drop="You place the rock tablet engraved with the letter H down.",
-        text_examine="A rough stone tablet carved with the letter H.",
     )
 
     world = World()
@@ -163,7 +144,7 @@ def build_world() -> World:
     world.add_definition(
         TriggerFunctionDefinition(
             LookInEventPattern("$container"),
-            [OnLookInShowItems()],
+            [OnLookInShowContainerDescription(), OnLookInShowItems()],
         )
     )
     world.add_definition(
@@ -186,57 +167,73 @@ def build_world() -> World:
 
     world.add_definition(location_glade)
     world.add_definition(location_cave)
+    world.add_definition(location_beach)
     world.add_definition(location_boat)
     world.add_definition(location_plane)
     world.add_definition(location_cabin)
     world.add_definition(location_camping_site)
-    world.add_definition(location_monolith)
     world.add_definition(location_path_1)
     world.add_definition(location_path_2)
     world.add_definition(location_path_3)
     world.add_definition(location_path_4)
-    world.add_definition(location_path_5)
-    world.add_definition(location_path_6)
-    world.add_definition(location_path_7)
-    world.add_definition(location_path_8)
-    world.add_definition(location_path_9)
-    world.add_definition(container_hollow_tree_trunk)
-    world.add_definition(item_rock_tablet_h)
 
-    add_route(world, location_glade, Direction.SOUTH, location_path_1)
-    add_route(world, location_path_1, Direction.WEST, location_path_2)
-    add_route(world, location_path_2, Direction.SOUTH, location_cave)
-    add_route(world, location_path_1, Direction.EAST, location_path_3)
-    add_route(world, location_path_3, Direction.EAST, location_boat)
-    add_route(world, location_glade, Direction.WEST, location_path_9)
-    add_route(world, location_path_9, Direction.WEST, location_monolith)
-    add_route(world, location_glade, Direction.NORTH, location_path_4)
-    add_route(world, location_path_4, Direction.NORTH, location_path_5)
-    add_route(world, location_path_5, Direction.EAST, location_path_6)
-    add_route(world, location_path_6, Direction.EAST, location_plane)
-    add_route(world, location_path_5, Direction.NORTH, location_path_7)
-    add_route(world, location_path_7, Direction.WEST, location_path_8)
-    add_route(world, location_path_8, Direction.WEST, location_cabin)
-    add_route(world, location_path_7, Direction.NORTH, location_camping_site)
+    add_route(world, location_glade, Direction.NORTH, location_path_1)
+    add_route(world, location_path_1, Direction.NORTH, location_cave)
+    add_route(world, location_glade, Direction.EAST, location_path_2)
+    add_route(world, location_path_2, Direction.EAST, location_beach)
+    add_route(world, location_beach, Direction.NORTH, location_boat)
+    add_route(world, location_glade, Direction.SOUTH, location_path_3)
+    add_route(world, location_path_3, Direction.EAST, location_plane)
+    add_route(world, location_path_3, Direction.SOUTH, location_path_4)
+    add_route(world, location_path_4, Direction.WEST, location_cabin)
+    add_route(world, location_path_4, Direction.SOUTH, location_camping_site)
 
     world.add_definition(
         StateWrapperDefinition(AtFactPattern(character_player.key, location_glade.key))
     )
 
-    world.add_definition(StateWrapperDefinition(TickFactPattern("1")))
+    small_rock = ItemFactDefinition(
+        key="small_rock",
+        name="Small rock",
+        text_pickup="You pick up the small rock.",
+        text_drop="You place the small rock on the floor.",
+        text_examine="A smooth, palm-sized stone with flecks of quartz.",
+        text_enter="A small rock rests on the floor.",
+        text_look="Inside, a small rock lies on the floor.",
+    )
+    world.add_definition(small_rock)
+    world.add_definition(
+        StateWrapperDefinition(AtFactPattern(small_rock.key, location_glade.key))
+    )
+
+    unconscious_person = ContainerFactDefinition(
+        key="unconscious_person",
+        name="Unconscious person",
+        text_enter="An unconscious person lies here, barely breathing.",
+        text_look="You check the unconscious person. Their breathing is shallow but steady.",
+    )
+    world.add_definition(unconscious_person)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(unconscious_person.key, location_glade.key)
+        )
+    )
+
+    container_hollow_tree_trunk = ContainerFactDefinition(
+        key="hollow_tree_trunk",
+        name="Hollow tree trunk",
+    )
+    world.add_definition(container_hollow_tree_trunk)
     world.add_definition(
         StateWrapperDefinition(
             AtFactPattern(container_hollow_tree_trunk.key, location_path_3.key)
         )
     )
-    world.add_definition(
-        StateWrapperDefinition(
-            AtFactPattern(item_rock_tablet_h.key, container_hollow_tree_trunk.key)
-        )
-    )
 
-    CompassModule(character_player.to_pattern(), location_glade.key).apply(world)
+    CompassModule(character_player.to_pattern(), location_glade.key, unconscious_person.key).apply(world)
     CaveEntranceModule(location_path_2.key, location_cave.key).apply(world)
+
+    world.add_definition(StateWrapperDefinition(TickFactPattern("1")))
 
     return world
 

@@ -11,13 +11,22 @@ from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
 from tests.utils.metta import get_test_metta
 from tests.utils.utils import unwrap_first_match
+from utils.response import format_metta_output
 
 
 class TestOnLookInShowItems(unittest.TestCase):
     def test_shows_items_inside_container(self):
         metta = get_test_metta()
 
-        metta.run(ItemFactDefinition("coin", "picked", "dropped", "examined").to_metta())
+        metta.run(
+            ItemFactDefinition(
+                "coin",
+                "picked",
+                "dropped",
+                "examined",
+                text_look="A silver coin glints inside.",
+            ).to_metta()
+        )
         metta.run(StateWrapperDefinition(AtFactPattern("coin", "chest")).to_metta())
         metta.run(
             TriggerFunctionDefinition(
@@ -28,7 +37,7 @@ class TestOnLookInShowItems(unittest.TestCase):
         trigger_look_in = TriggerFunctionPattern(LookInEventPattern("chest"))
         result = metta.run(f"!{trigger_look_in.to_metta()}")
 
-        self.assertEqual(unwrap_first_match(result).text, "Inside: [coin]")
+        self.assertEqual(format_metta_output(result), "A silver coin glints inside.")
 
     def test_shows_empty_message_when_no_items_inside(self):
         metta = get_test_metta()

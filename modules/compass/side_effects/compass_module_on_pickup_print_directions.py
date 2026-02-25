@@ -14,12 +14,12 @@ class CompassModuleOnPickupPrintDirections(SideEffectDefinition):
 
     def to_metta(self, event: PickUpEventPattern) -> str:
         state_at_player = StateWrapperPattern(
-            AtFactPattern(self.character.key, "$where")
+            AtFactPattern(self.character.key, "$player_where")
         )
-        directions = CompassDirectionsFunctionPattern("$where")
+        directions = CompassDirectionsFunctionPattern("$player_where")
         # fmt: off
         return (
-            f"(let $where (match &self {state_at_player.to_metta()} $where)\n"
+            f"(let $player_where (match &self {state_at_player.to_metta()} $player_where)\n"
             f"    {directions.to_metta()}\n"
             f")"
         )
