@@ -33,6 +33,15 @@ def _resolve_items(world) -> list[SlotValue]:
     return [SlotValue(key=k, text=_humanize_key(k)) for k in keys]
 
 
+def _resolve_examinables(world) -> list[SlotValue]:
+    item_keys = {d.key for d in world.definitions if isinstance(d, ItemFactDefinition)}
+    container_keys = {
+        d.key for d in world.definitions if isinstance(d, ContainerFactDefinition)
+    }
+    keys = sorted(item_keys | container_keys)
+    return [SlotValue(key=k, text=_humanize_key(k)) for k in keys]
+
+
 def _resolve_locations(world) -> list[SlotValue]:
     keys = sorted(
         {d.key for d in world.definitions if isinstance(d, LocationFactDefinition)}
@@ -54,6 +63,7 @@ def _resolve_directions(_world) -> list[SlotValue]:
 
 DEFAULT_SLOT_RESOLVERS = {
     "item": _resolve_items,
+    "examinable": _resolve_examinables,
     "location": _resolve_locations,
     "container": _resolve_containers,
     "direction": _resolve_directions,

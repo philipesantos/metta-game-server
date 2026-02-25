@@ -40,6 +40,7 @@ class LookInFunctionDefinition(FunctionDefinition):
                 "look in {container}",
                 "look inside {container}",
                 "check inside {container}",
+                "search {container}",
             ),
             metta="(look-in ({container}))",
             slots={"container": SlotSpec("container")},
