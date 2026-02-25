@@ -73,7 +73,15 @@ class TestCommandCatalog(unittest.TestCase):
             "(examine (compass))",
         )
         self.assertEqual(
+            utterance_to_metta.get("examine wooden chest"),
+            "(examine (wooden_chest))",
+        )
+        self.assertEqual(
             utterance_to_metta.get("look in wooden chest"),
+            "(look-in (wooden_chest))",
+        )
+        self.assertEqual(
+            utterance_to_metta.get("search wooden chest"),
             "(look-in (wooden_chest))",
         )
 

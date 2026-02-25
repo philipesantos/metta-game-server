@@ -26,10 +26,15 @@ from modules.module import Module
 
 
 class CompassModule(Module):
-    def __init__(self, character: CharacterFactPattern, initial_location: str, compass_where: str):
+    def __init__(
+        self,
+        character: CharacterFactPattern,
+        initial_location: str,
+        compass_where: str | None = None,
+    ):
         self.character: CharacterFactPattern = character
         self.initial_location: str = initial_location
-        self.compass_where: str = compass_where
+        self.compass_where: str = compass_where or initial_location
 
     def apply(self, world: World) -> None:
         item_compass = ItemFactDefinition(

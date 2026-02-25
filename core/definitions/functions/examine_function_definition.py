@@ -42,12 +42,11 @@ class ExamineFunctionDefinition(FunctionDefinition):
         return NLSpec(
             intent="examine",
             templates=(
-                "examine {item}",
-                "inspect {item}",
-                "look at {item}",
-                "look {item}",
-                "check {item}",
+                "examine {target}",
+                "inspect {target}",
+                "look at {target}",
+                "check {target}",
             ),
-            metta="(examine ({item}))",
-            slots={"item": SlotSpec("item")},
+            metta="(examine ({target}))",
+            slots={"target": SlotSpec("examinable")},
         )

@@ -44,9 +44,6 @@ from core.definitions.side_effects.on_move_show_items import OnMoveShowItems
 from core.definitions.side_effects.on_move_update_at import OnMoveUpdateAt
 from core.definitions.side_effects.on_move_update_tick import OnMoveUpdateTick
 from core.definitions.side_effects.on_pickup_update_at import OnPickUpUpdateAt
-from core.definitions.side_effects.on_look_in_show_container_description import (
-    OnLookInShowContainerDescription,
-)
 from core.definitions.side_effects.on_look_in_show_items import OnLookInShowItems
 from core.definitions.side_effects.on_startup_show_items import OnStartupShowItems
 from core.definitions.side_effects.on_use_do_nothing import OnUseDoNothing
@@ -144,7 +141,7 @@ def build_world() -> World:
     world.add_definition(
         TriggerFunctionDefinition(
             LookInEventPattern("$container"),
-            [OnLookInShowContainerDescription(), OnLookInShowItems()],
+            [OnLookInShowItems()],
         )
     )
     world.add_definition(
@@ -210,6 +207,7 @@ def build_world() -> World:
         key="unconscious_person",
         name="Unconscious person",
         text_enter="An unconscious person lies here, barely breathing.",
+        text_examine="You examine the unconscious person. They seem weak but stable.",
         text_look="You check the unconscious person. Their breathing is shallow but steady.",
     )
     world.add_definition(unconscious_person)

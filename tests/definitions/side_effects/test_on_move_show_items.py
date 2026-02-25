@@ -44,7 +44,7 @@ class TestOnMoveShowItems(unittest.TestCase):
         result_text = format_metta_output(result)
 
         self.assertIn("A silver coin glints in the grass.", result_text)
-        self.assertIn("You notice hollow_tree_trunk.", result_text)
+        self.assertNotIn("hollow_tree_trunk", result_text)
 
     def test_returns_empty_when_no_items(self):
         metta = get_test_metta()
@@ -59,7 +59,7 @@ class TestOnMoveShowItems(unittest.TestCase):
         result = metta.run(f"!{trigger.to_metta()}")
 
         if result != [[]]:
-            self.assertEqual(unwrap_first_match(result), "Empty")
+            self.assertEqual(unwrap_first_match(result), "()")
 
 
 if __name__ == "__main__":

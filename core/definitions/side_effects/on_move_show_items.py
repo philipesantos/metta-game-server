@@ -3,7 +3,6 @@ from core.patterns.events.move_event_pattern import MoveEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.response_fact_pattern import ResponseFactPattern
 from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
-from utils.type import Type
 
 
 class OnMoveShowItems(SideEffectDefinition):
@@ -12,11 +11,7 @@ class OnMoveShowItems(SideEffectDefinition):
         # fmt: off
         return (
             f"(collapse (match &self {state_at_what.to_metta()}\n"
-            f"    (case (get-type $what) (\n"
-            f"        ({Type.ITEM.value} (match &self (ItemEnterText $what $text) {ResponseFactPattern(20, '$text').to_metta()}))\n"
-            f"        ({Type.CONTAINER.value} (match &self (ContainerEnterText $what $text) {ResponseFactPattern(20, '$text').to_metta()}))\n"
-            f"        ($_ Empty)\n"
-            f"    ))\n"
+            f"    (match &self (ItemEnterText $what $text) {ResponseFactPattern(20, '$text').to_metta()})\n"
             f"))"
         )
         # fmt: on
