@@ -218,13 +218,76 @@ def build_world() -> World:
     )
 
     container_hollow_tree_trunk = ContainerFactDefinition(
-        key="hollow_tree_trunk",
+        key="tree_trunk",
         name="Hollow tree trunk",
+        text_enter="An old tree trunk",
+        text_examine="The tree trunk looks hollow",
+        text_look="You put your hand inside the tree trunk.",
     )
     world.add_definition(container_hollow_tree_trunk)
     world.add_definition(
         StateWrapperDefinition(
             AtFactPattern(container_hollow_tree_trunk.key, location_path_3.key)
+        )
+    )
+
+    container_rock_formation = ContainerFactDefinition(
+        key="rock_formation",
+        name="Suspicious rock formation",
+        text_enter="A suspicious rock formation",
+        text_examine="The rock formation doesn’t look natural. There seems to be a gap between the rocks.",
+        text_look="You look inside the gap between the rocks.",
+    )
+    world.add_definition(container_rock_formation)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(container_rock_formation.key, location_path_4.key)
+        )
+    )
+
+    big_chest = ContainerFactDefinition(
+        key="chest",
+        name="Big chest",
+        text_enter="There is a chest near a tent",
+        text_examine="It is a big chest, it looks open.",
+        text_look="You look inside the chest.",
+    )
+    world.add_definition(big_chest)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(big_chest.key, location_camping_site.key)
+        )
+    )
+
+    shovel = ItemFactDefinition(
+        key="shovel",
+        name="Shovel",
+        text_enter="You see an old shovel.",
+        text_examine="An old shovel, but it still looks sturdy enough to do the job.",
+        text_look="Inside, an old shovel leans against the chest wall.",
+        text_drop="You drop the old shovel.",
+        text_pickup="You pick up the old shovel.",
+    )
+    world.add_definition(shovel)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(shovel.key, big_chest.key)
+        )
+    )
+
+    lantern = ItemFactDefinition(
+        key="lantern",
+        name="Lantern",
+        text_enter="You see a weathered lantern.",
+        text_examine="A weathered lantern. The oil inside has long since dried.",
+        text_look="Inside, a weathered lantern lies in the chest.",
+        text_drop="You drop the lantern.",
+        text_pickup="You pick up the lantern.",
+    )
+    world.add_definition(lantern)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(lantern.key, big_chest.key)
         )
     )
 
