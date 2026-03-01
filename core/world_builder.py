@@ -98,6 +98,9 @@ def build_world() -> World:
     location_path_4 = LocationFactDefinition(
         key="path_4", text_move_to="You are in the path 4."
     )
+    location_path_5 = LocationFactDefinition(
+        key="path_5", text_move_to="You are in the path 5."
+    )
 
     world = World()
 
@@ -173,6 +176,7 @@ def build_world() -> World:
     world.add_definition(location_path_2)
     world.add_definition(location_path_3)
     world.add_definition(location_path_4)
+    world.add_definition(location_path_5)
 
     add_route(world, location_glade, Direction.NORTH, location_path_1)
     add_route(world, location_path_1, Direction.NORTH, location_cave)
@@ -182,7 +186,8 @@ def build_world() -> World:
     add_route(world, location_glade, Direction.SOUTH, location_path_3)
     add_route(world, location_path_3, Direction.EAST, location_plane)
     add_route(world, location_path_3, Direction.SOUTH, location_path_4)
-    add_route(world, location_path_4, Direction.WEST, location_cabin)
+    add_route(world, location_path_4, Direction.WEST, location_path_5)
+    add_route(world, location_path_5, Direction.WEST, location_cabin)
     add_route(world, location_path_4, Direction.SOUTH, location_camping_site)
 
     world.add_definition(
@@ -288,6 +293,95 @@ def build_world() -> World:
     world.add_definition(
         StateWrapperDefinition(
             AtFactPattern(lantern.key, big_chest.key)
+        )
+    )
+
+    abandoned_well = ContainerFactDefinition(
+        key="well",
+        name="Abandoned well",
+        text_enter="You see a abandoned well.",
+        text_examine="The buckets is in there, but the well seems dry.",
+        text_look="You look inside the well."
+    )
+    world.add_definition(abandoned_well)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(abandoned_well.key, location_path_5.key)
+        )
+    )
+
+    fireplace = ContainerFactDefinition(
+        key="fireplace",
+        name="Stone fireplace",
+        text_enter="You see a stone fireplace built into the wall.",
+        text_examine="A thin layer of ash rests at the bottom. The soot above suggests it hasn't been lit for quite some time.",
+        text_look="You peer inside the fireplace."
+    )
+    world.add_definition(fireplace)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(fireplace.key, location_cabin.key)
+        )
+    )
+
+    loose_board = ContainerFactDefinition(
+        key="loose_board",
+        name="Loose board",
+        text_enter="One of the wooden boards looks slightly out of place.",
+        text_examine="The board shifts when you press it. There seems to be space beneath it.",
+        text_look="You crouch down and inspect the gap beneath the board."
+    )
+    world.add_definition(loose_board)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(loose_board.key, location_path_5.key)
+        )
+    )
+
+    seashell = ContainerFactDefinition(
+        key="seashell",
+        name="Seashell",
+        text_enter="A small seashell rests in the sand.",
+        text_examine="Its surface is smooth and pale, shaped by the tide. The shell is slightly open, just enough to slip something inside.",
+        text_look="You gently pry the shell open and look inside."
+    )
+    world.add_definition(seashell)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(seashell.key, location_beach.key)
+        )
+    )
+
+    cabin_key = ItemFactDefinition(
+        key="cabin_key",
+        name="Cabin key",
+        text_enter="You see a small metal key.",
+        text_examine="A small iron key with the word 'Cabin' faintly etched into its surface.",
+        text_look="Inside, a small metal key.",
+        text_drop="You drop the cabin key.",
+        text_pickup="You pick up the cabin key.",
+    )
+    world.add_definition(cabin_key)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(cabin_key.key, seashell.key)
+        )
+    )
+
+    lantern_oil = ItemFactDefinition(
+        key="oil",
+        name="Lantern oil",
+        text_enter="You see a small metal flask filled with oil.",
+        text_examine="A sealed flask containing clear lamp oil. It smells sharp and flammable.",
+        text_look="A small flask of lantern oil rests here.",
+        text_drop="You set the lantern oil down.",
+        text_pickup="You pick up the lantern oil.",
+    )
+
+    world.add_definition(lantern_oil)
+    world.add_definition(
+        StateWrapperDefinition(
+            AtFactPattern(lantern_oil.key, fireplace.key)
         )
     )
 
