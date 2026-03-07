@@ -1,4 +1,5 @@
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
+from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_block_fact_definition import RouteBlockFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.definitions.functions.trigger_function_definition import (
@@ -29,11 +30,11 @@ class CompassModule(Module):
     def __init__(
         self,
         character: CharacterFactPattern,
-        initial_location: str,
+        initial_location: LocationFactDefinition,
         compass_where: str | None = None,
     ):
         self.character: CharacterFactPattern = character
-        self.initial_location: str = initial_location
+        self.initial_location: LocationFactDefinition = initial_location
         self.compass_where: str = compass_where or initial_location
 
     def apply(self, world: World) -> None:
@@ -62,7 +63,7 @@ class CompassModule(Module):
                 PickUpEventPattern(item_compass.key, "$where"),
                 [
                     CompassModuleOnPickupPrintDirections(self.character),
-                    CompassModuleOnPickupRemoveRouteBlocks(),
+                    CompassModuleOnPickupRemoveRouteBlocks(self.initial_location.key),
                 ],
             )
         )
@@ -74,14 +75,14 @@ class CompassModule(Module):
         for definition in world.definitions:
             if (
                 isinstance(definition, RouteFactDefinition)
-                and definition.location_from == self.initial_location
+                and definition.location_from == self.initial_location.key
             ):
                 destinations.add(definition.location_to)
 
         for destination in destinations:
             world.add_definition(
                 RouteBlockFactDefinition(
-                    self.initial_location,
+                    self.initial_location.key,
                     destination,
                     route_block_reason,
                 )

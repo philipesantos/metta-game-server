@@ -24,6 +24,8 @@ class TestItemFactDefinition(unittest.TestCase):
         name = "Old compass"
         text_enter = "An old compass lies on a mossy stone."
         text_look = "Inside, an old compass rests against the lining."
+        enter_priority = 70
+        look_priority = 40
 
         metta.run(
             ItemFactDefinition(
@@ -34,6 +36,8 @@ class TestItemFactDefinition(unittest.TestCase):
                 name=name,
                 text_enter=text_enter,
                 text_look=text_look,
+                enter_priority=enter_priority,
+                look_priority=look_priority,
             ).to_metta()
         )
 
@@ -65,6 +69,16 @@ class TestItemFactDefinition(unittest.TestCase):
 
         result_look_text = metta.run(f"!(match &self (ItemLookText {key} $text) $text)")
         self.assertEqual(unwrap_first_match(result_look_text), text_look)
+
+        result_enter_priority = metta.run(
+            f"!(match &self (ItemEnterPriority {key} $priority) $priority)"
+        )
+        self.assertEqual(unwrap_first_match(result_enter_priority), str(enter_priority))
+
+        result_look_priority = metta.run(
+            f"!(match &self (ItemLookPriority {key} $priority) $priority)"
+        )
+        self.assertEqual(unwrap_first_match(result_look_priority), str(look_priority))
 
         result_name = metta.run(f"!(match &self (ItemName {key} $name) $name)")
         self.assertEqual(unwrap_first_match(result_name), name)

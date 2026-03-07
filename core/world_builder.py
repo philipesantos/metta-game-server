@@ -2,6 +2,7 @@ from core.definitions.facts.character_fact_definition import CharacterFactDefini
 from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
+from core.definitions.facts.route_block_fact_definition import RouteBlockFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.definitions.functions.drop_function_definition import DropFunctionDefinition
 from core.definitions.functions.examine_function_definition import (
@@ -59,6 +60,7 @@ from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.tick_fact_pattern import TickFactPattern
 from core.world import World
 from modules.compass.compass_module import CompassModule
+from modules.statues.statues_module import StatuesModule
 from utils.direction import Direction
 
 
@@ -221,6 +223,28 @@ def build_world() -> World:
     world.add_definition(disturbed_soil)
     world.add_definition(
         StateWrapperDefinition(AtFactPattern(disturbed_soil.key, location_path_2.key))
+    )
+
+    huge_rock = ItemFactDefinition(
+        key="huge_rock",
+        name="Huge rock",
+        text_pickup="",
+        text_drop="",
+        text_examine="A massive boulder blocks the cave entrance. You cannot move it by hand.",
+        text_enter="A cave entrance is here, but a huge rock blocks it.",
+        text_look="The rock is wedged tightly in place, completely sealing the path ahead.",
+        can_pickup=False,
+    )
+    world.add_definition(huge_rock)
+    world.add_definition(
+        StateWrapperDefinition(AtFactPattern(huge_rock.key, location_path_1.key))
+    )
+    world.add_definition(
+        RouteBlockFactDefinition(
+            location_path_1.key,
+            location_cave.key,
+            "A huge rock blocks the cave entrance.",
+        )
     )
 
     iron_box = ItemFactDefinition(
@@ -422,7 +446,17 @@ def build_world() -> World:
         )
     )
 
-    CompassModule(character_player.to_pattern(), location_glade.key, unconscious_person.key).apply(world)
+    CompassModule(character_player.to_pattern(), location_glade, unconscious_person.key).apply(world)
+    StatuesModule(
+        character_player.to_pattern(),
+        location_path_1,
+        [
+            container_hollow_tree_trunk,
+            container_rock_formation,
+            big_chest,
+            abandoned_well,
+        ],
+    ).apply(world)
 
     world.add_definition(StateWrapperDefinition(TickFactPattern("1")))
 

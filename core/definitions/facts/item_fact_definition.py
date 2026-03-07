@@ -15,6 +15,8 @@ class ItemFactDefinition(FactDefinition):
     NAME_FACT = "ItemName"
     ENTER_TEXT_FACT = "ItemEnterText"
     LOOK_TEXT_FACT = "ItemLookText"
+    ENTER_PRIORITY_FACT = "ItemEnterPriority"
+    LOOK_PRIORITY_FACT = "ItemLookPriority"
 
     def __init__(
         self,
@@ -25,6 +27,8 @@ class ItemFactDefinition(FactDefinition):
         name: str | None = None,
         text_enter: str | None = None,
         text_look: str | None = None,
+        enter_priority: int = 20,
+        look_priority: int = 20,
         can_pickup: bool = True,
     ):
         self.key = key
@@ -32,8 +36,10 @@ class ItemFactDefinition(FactDefinition):
         self.text_drop = text_drop
         self.text_examine = text_examine
         self.name = name or self._default_name(key)
-        self.text_enter = text_enter or self._default_descriptive_text(key)
+        self.text_enter = text_enter
         self.text_look = text_look or self._default_descriptive_text(key)
+        self.enter_priority = enter_priority
+        self.look_priority = look_priority
         self.can_pickup = can_pickup
 
     def to_metta(self) -> str:
@@ -52,9 +58,19 @@ class ItemFactDefinition(FactDefinition):
         item_name = f'({self.NAME_FACT} {self.key} {self._quote(self.name)})\n'
         item_enter_text = (
             f'({self.ENTER_TEXT_FACT} {self.key} {self._quote(self.text_enter)})\n'
+            if self.text_enter is not None
+            else ""
         )
         item_look_text = (
             f'({self.LOOK_TEXT_FACT} {self.key} {self._quote(self.text_look)})\n'
+        )
+        item_enter_priority = (
+            f"({self.ENTER_PRIORITY_FACT} {self.key} {self.enter_priority})\n"
+            if self.text_enter is not None
+            else ""
+        )
+        item_look_priority = (
+            f"({self.LOOK_PRIORITY_FACT} {self.key} {self.look_priority})\n"
         )
         # fmt: off
         return (
@@ -63,6 +79,8 @@ class ItemFactDefinition(FactDefinition):
             f"{item_name}"
             f"{item_enter_text}"
             f"{item_look_text}"
+            f"{item_enter_priority}"
+            f"{item_look_priority}"
             f"{pickupable}"
             f"{trigger_pickup.to_metta()}\n"
             f"{trigger_drop.to_metta()}\n"

@@ -19,7 +19,14 @@ class OnStartupShowItems(SideEffectDefinition):
         return (
             f"(let $where (match &self {state_at_player.to_metta()} $where)\n"
             f"    (collapse (match &self {state_at_what.to_metta()}\n"
-            f"        (match &self (ItemEnterText $what $text) {ResponseFactPattern(20, '$text').to_metta()})\n"
+            f"        (match &self (ItemEnterText $what $text)\n"
+            f"            (let $priority_result (match &self (ItemEnterPriority $what $priority) $priority)\n"
+            f"                (case $priority_result (\n"
+            f"                    (Empty {ResponseFactPattern(20, '$text').to_metta()})\n"
+            f"                    ($priority {ResponseFactPattern('$priority', '$text').to_metta()})\n"
+            f"                ))\n"
+            f"            )\n"
+            f"        )\n"
             f"    ))\n"
             f")"
         )

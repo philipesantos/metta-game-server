@@ -16,6 +16,30 @@ from utils.response import format_metta_output
 
 
 class TestOnMoveShowItems(unittest.TestCase):
+    def test_does_not_show_default_text_when_item_has_no_enter_text(self):
+        metta = get_test_metta()
+
+        metta.run(
+            ItemFactDefinition(
+                "coin",
+                "picked",
+                "dropped",
+                "examined",
+            ).to_metta()
+        )
+        metta.run(StateWrapperDefinition(AtFactPattern("coin", "glade")).to_metta())
+        metta.run(
+            TriggerFunctionDefinition(
+                MoveEventPattern("$from", "$to"), [OnMoveShowItems()]
+            ).to_metta()
+        )
+
+        trigger = TriggerFunctionPattern(MoveEventPattern("cave", "glade"))
+        result = metta.run(f"!{trigger.to_metta()}")
+
+        if result != [[]]:
+            self.assertEqual(unwrap_first_match(result), "()")
+
     def test_returns_items_when_present(self):
         metta = get_test_metta()
 
