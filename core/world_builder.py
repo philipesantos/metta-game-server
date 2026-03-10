@@ -356,12 +356,24 @@ def build_world() -> World:
         key="well",
         name="Abandoned well",
         text_enter="You see a abandoned well.",
-        text_examine="The buckets is in there, but the well seems dry.",
+        text_examine="A worn bucket sits inside, but the well seems dry.",
         text_look="You look inside the well.",
     )
     world.add_definition(abandoned_well)
     world.add_definition(
         StateWrapperDefinition(AtFactPattern(abandoned_well.key, location_path_5.key))
+    )
+
+    bucket = ContainerFactDefinition(
+        key="bucket",
+        name="Bucket",
+        text_enter="A worn bucket rests here.",
+        text_examine="An old wooden bucket with a frayed rope handle.",
+        text_look="A worn bucket hangs inside the well.",
+    )
+    world.add_definition(bucket)
+    world.add_definition(
+        StateWrapperDefinition(AtFactPattern(bucket.key, abandoned_well.key))
     )
 
     seashell = ContainerFactDefinition(
@@ -404,7 +416,7 @@ def build_world() -> World:
             container_hollow_tree_trunk,
             container_rock_formation,
             big_chest,
-            abandoned_well,
+            bucket,
         ],
     ).apply(world)
 

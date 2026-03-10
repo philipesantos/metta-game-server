@@ -13,6 +13,7 @@ from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 from core.world_builder import build_world
 from tests.utils.metta import get_test_metta
 from tests.utils.utils import unwrap_first_match
+from utils.direction import Direction
 from utils.response import format_metta_output
 
 
@@ -47,6 +48,30 @@ class TestWorldBuilder(unittest.TestCase):
             1,
         )
 
+    def test_look_in_well_lists_bucket_once(self):
+        metta = get_test_metta()
+        metta.run(build_world().to_metta())
+
+        result = metta.run(
+            f"!{TriggerFunctionPattern(LookInEventPattern('well')).to_metta()}"
+        )
+        output_lines = format_metta_output(result).splitlines()
+
+        self.assertEqual(output_lines.count("You look inside the well."), 1)
+        self.assertEqual(output_lines.count("A worn bucket hangs inside the well."), 1)
+
+    def test_look_in_bucket_outputs_bucket_description(self):
+        metta = get_test_metta()
+        metta.run(build_world().to_metta())
+
+        result = metta.run(
+            f"!{TriggerFunctionPattern(LookInEventPattern('bucket')).to_metta()}"
+        )
+        output_lines = format_metta_output(result).splitlines()
+
+        self.assertEqual(output_lines.count("A worn bucket hangs inside the well."), 1)
+        self.assertGreaterEqual(len(output_lines), 1)
+
     def test_use_shovel_on_disturbed_soil_reveals_iron_box(self):
         metta = get_test_metta()
         metta.run(build_world().to_metta())
@@ -80,7 +105,9 @@ class TestWorldBuilder(unittest.TestCase):
         metta.run(build_world().to_metta())
 
         metta.run(StateWrapperDefinition(AtFactPattern("player", "path_5")).to_metta())
-        blocked_result = metta.run(f"!{MoveTowardsFunctionPattern('west').to_metta()}")
+        blocked_result = metta.run(
+            f"!{MoveTowardsFunctionPattern(Direction.WEST).to_metta()}"
+        )
         self.assertEqual(
             unwrap_first_match(blocked_result).text,
             "The cabin is locked. You need a key.",
@@ -92,7 +119,9 @@ class TestWorldBuilder(unittest.TestCase):
         metta.run(f"!{UseFunctionPattern('metal_key', 'cabin').to_metta()}")
 
         metta.run(StateWrapperDefinition(AtFactPattern("player", "path_5")).to_metta())
-        unlocked_result = metta.run(f"!{MoveTowardsFunctionPattern('west').to_metta()}")
+        unlocked_result = metta.run(
+            f"!{MoveTowardsFunctionPattern(Direction.WEST).to_metta()}"
+        )
         output_lines = format_metta_output(unlocked_result).splitlines()
         self.assertIn("You are in the cabin.", output_lines)
 

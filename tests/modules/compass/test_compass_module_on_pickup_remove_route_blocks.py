@@ -1,5 +1,6 @@
 import unittest
 
+from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.patterns.events.pickup_event_pattern import PickUpEventPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
@@ -8,6 +9,7 @@ from core.patterns.functions.trigger_function_pattern import TriggerFunctionPatt
 from core.world import World
 from modules.compass.compass_module import CompassModule
 from tests.utils.metta import get_test_metta
+from tests.utils.utils import unwrap_first_match
 
 
 class TestCompassModuleOnPickupRemoveRouteBlocks(unittest.TestCase):
@@ -18,7 +20,10 @@ class TestCompassModuleOnPickupRemoveRouteBlocks(unittest.TestCase):
         world.add_definition(RouteFactDefinition("glade", "north", "cave"))
         world.add_definition(RouteFactDefinition("glade", "south", "beach"))
         world.add_definition(RouteFactDefinition("cave", "east", "plane"))
-        CompassModule(CharacterFactPattern("player", "John"), "glade").apply(world)
+        CompassModule(
+            CharacterFactPattern("player", "John"),
+            LocationFactDefinition("glade", "A quiet glade."),
+        ).apply(world)
         metta.run(world.to_metta())
 
         # Add an extra block from a different location; it should remain.
@@ -43,7 +48,7 @@ class TestCompassModuleOnPickupRemoveRouteBlocks(unittest.TestCase):
         result_cave_to_plane = metta.run(
             f"!(match &self {cave_to_plane.to_metta()} $reason)"
         )
-        self.assertEqual(result_cave_to_plane[0][0], "Temporary blockade.")
+        self.assertEqual(unwrap_first_match(result_cave_to_plane), "Temporary blockade.")
 
 
 if __name__ == "__main__":

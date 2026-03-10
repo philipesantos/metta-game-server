@@ -1,5 +1,6 @@
 import unittest
 
+from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
 from core.patterns.facts.route_block_fact_pattern import RouteBlockFactPattern
@@ -18,7 +19,10 @@ class TestCompassModule(unittest.TestCase):
         world.add_definition(RouteFactDefinition("glade", "south", "beach"))
         world.add_definition(RouteFactDefinition("cave", "east", "plane"))
 
-        CompassModule(CharacterFactPattern("player", "John"), "glade").apply(world)
+        CompassModule(
+            CharacterFactPattern("player", "John"),
+            LocationFactDefinition("glade", "A quiet glade."),
+        ).apply(world)
         metta.run(world.to_metta())
 
         glade_to_cave = RouteBlockFactPattern("glade", "cave", "$reason")

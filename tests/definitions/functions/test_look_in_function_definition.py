@@ -3,12 +3,17 @@ import unittest
 from core.definitions.functions.exists_function_definition import (
     ExistsFunctionDefinition,
 )
+from core.definitions.functions.last_function_definition import LastFunctionDefinition
 from core.definitions.functions.look_in_function_definition import (
     LookInFunctionDefinition,
+)
+from core.definitions.functions.location_path_function_definition import (
+    LocationPathFunctionDefinition,
 )
 from core.definitions.functions.trigger_function_definition import (
     TriggerFunctionDefinition,
 )
+from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.side_effects.on_event_print import OnEventPrint
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
 from core.patterns.events.look_in_event_pattern import LookInEventPattern
@@ -26,7 +31,10 @@ class TestLookInFunctionDefinition(unittest.TestCase):
         character = CharacterFactPattern("player", "John")
 
         metta.run(ExistsFunctionDefinition().to_metta())
+        metta.run(LocationPathFunctionDefinition().to_metta())
+        metta.run(LastFunctionDefinition().to_metta())
         metta.run(LookInFunctionDefinition(character).to_metta())
+        metta.run(LocationFactDefinition("glade", "A quiet glade.").to_metta())
         metta.run(
             TriggerFunctionDefinition(
                 LookInEventPattern("$container"),
@@ -43,13 +51,43 @@ class TestLookInFunctionDefinition(unittest.TestCase):
 
         self.assertEqual(unwrap_first_match(result).text, "Looked")
 
+    def test_triggers_look_in_event_when_container_is_nested(self):
+        metta = get_test_metta()
+
+        character = CharacterFactPattern("player", "John")
+
+        metta.run(ExistsFunctionDefinition().to_metta())
+        metta.run(LocationPathFunctionDefinition().to_metta())
+        metta.run(LastFunctionDefinition().to_metta())
+        metta.run(LookInFunctionDefinition(character).to_metta())
+        metta.run(LocationFactDefinition("glade", "A quiet glade.").to_metta())
+        metta.run(
+            TriggerFunctionDefinition(
+                LookInEventPattern("$container"),
+                [OnEventPrint("Looked")],
+            ).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
+        )
+        metta.run(StateWrapperDefinition(AtFactPattern("well", "glade")).to_metta())
+        metta.run(StateWrapperDefinition(AtFactPattern("bucket", "well")).to_metta())
+
+        action = LookInFunctionPattern("bucket")
+        result = metta.run(f"!{action.to_metta()}")
+
+        self.assertEqual(unwrap_first_match(result).text, "Looked")
+
     def test_returns_message_when_container_missing(self):
         metta = get_test_metta()
 
         character = CharacterFactPattern("player", "John")
 
         metta.run(ExistsFunctionDefinition().to_metta())
+        metta.run(LocationPathFunctionDefinition().to_metta())
+        metta.run(LastFunctionDefinition().to_metta())
         metta.run(LookInFunctionDefinition(character).to_metta())
+        metta.run(LocationFactDefinition("glade", "A quiet glade.").to_metta())
         metta.run(
             StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
         )

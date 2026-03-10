@@ -77,12 +77,12 @@ class TestItemFactDefinition(unittest.TestCase):
         result_enter_priority = metta.run(
             f"!(match &self (ItemEnterPriority {key} $priority) $priority)"
         )
-        self.assertEqual(unwrap_first_match(result_enter_priority), str(enter_priority))
+        self.assertEqual(unwrap_first_match(result_enter_priority), enter_priority)
 
         result_look_priority = metta.run(
             f"!(match &self (ItemLookPriority {key} $priority) $priority)"
         )
-        self.assertEqual(unwrap_first_match(result_look_priority), str(look_priority))
+        self.assertEqual(unwrap_first_match(result_look_priority), look_priority)
 
         result_name = metta.run(f"!(match &self (ItemName {key} $name) $name)")
         self.assertEqual(unwrap_first_match(result_name), name)

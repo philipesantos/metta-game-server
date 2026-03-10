@@ -2,11 +2,11 @@ import unittest
 
 from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
+from core.patterns.events.examine_event_pattern import ExamineEventPattern
 from core.patterns.events.look_in_event_pattern import LookInEventPattern
 from core.patterns.events.move_event_pattern import MoveEventPattern
 from core.patterns.events.startup_event_pattern import StartupEventPattern
 from core.patterns.facts.container_fact_pattern import ContainerFactPattern
-from core.patterns.events.examine_event_pattern import ExamineEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.location_fact_pattern import LocationFactPattern
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
