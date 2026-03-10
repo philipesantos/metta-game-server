@@ -22,24 +22,54 @@ class CabinModule(Module):
         path_location: LocationFactDefinition,
         cabin_location: LocationFactDefinition,
         key_container: ContainerFactDefinition,
+        fireplace_items: list[ItemFactDefinition] | None = None,
     ):
         self.path_location = path_location
         self.cabin_location = cabin_location
         self.key_container = key_container
+        self.fireplace_items = fireplace_items or []
 
     def apply(self, world: World) -> None:
-        cabin_key = ItemFactDefinition(
-            key="cabin_key",
-            name="Cabin key",
+        fireplace = ContainerFactDefinition(
+            key="fireplace",
+            name="Stone fireplace",
+            text_enter="You see a stone fireplace built into the wall.",
+            text_examine="A thin layer of ash rests at the bottom. The soot above suggests it hasn't been lit for quite some time.",
+            text_look="You peer inside the fireplace.",
+        )
+        world.add_definition(fireplace)
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern(fireplace.key, self.cabin_location.key))
+        )
+        for item in self.fireplace_items:
+            world.add_definition(
+                StateWrapperDefinition(AtFactPattern(item.key, fireplace.key))
+            )
+
+        loose_board = ContainerFactDefinition(
+            key="loose_board",
+            name="Loose board",
+            text_enter="One of the wooden boards looks slightly out of place.",
+            text_examine="The board shifts when you press it. There seems to be space beneath it.",
+            text_look="You crouch down and inspect the gap beneath the board.",
+        )
+        world.add_definition(loose_board)
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern(loose_board.key, self.cabin_location.key))
+        )
+
+        metal_key = ItemFactDefinition(
+            key="metal_key",
+            name="Metal key",
             text_enter="You see a small metal key.",
             text_examine="A small iron key with the word 'Cabin' faintly etched into its surface.",
             text_look="Inside, a small metal key.",
-            text_drop="You drop the cabin key.",
-            text_pickup="You pick up the cabin key.",
+            text_drop="You drop the metal key.",
+            text_pickup="You pick up the metal key.",
         )
-        world.add_definition(cabin_key)
+        world.add_definition(metal_key)
         world.add_definition(
-            StateWrapperDefinition(AtFactPattern(cabin_key.key, self.key_container.key))
+            StateWrapperDefinition(AtFactPattern(metal_key.key, self.key_container.key))
         )
 
         world.add_definition(
@@ -56,7 +86,7 @@ class CabinModule(Module):
         )
         world.add_definition(
             TriggerFunctionDefinition(
-                UseEventPattern("cabin_key", "cabin"),
+                UseEventPattern("metal_key", "cabin"),
                 [
                     CabinModuleOnUseUnlock(
                         self.path_location.key, self.cabin_location.key

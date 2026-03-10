@@ -324,7 +324,7 @@ def build_world() -> World:
     )
     world.add_definition(shovel)
     world.add_definition(
-        StateWrapperDefinition(AtFactPattern(shovel.key, location_path_2.key))
+        StateWrapperDefinition(AtFactPattern(shovel.key, big_chest.key))
     )
     world.add_definition(
         TriggerFunctionDefinition(
@@ -364,30 +364,6 @@ def build_world() -> World:
         StateWrapperDefinition(AtFactPattern(abandoned_well.key, location_path_5.key))
     )
 
-    fireplace = ContainerFactDefinition(
-        key="fireplace",
-        name="Stone fireplace",
-        text_enter="You see a stone fireplace built into the wall.",
-        text_examine="A thin layer of ash rests at the bottom. The soot above suggests it hasn't been lit for quite some time.",
-        text_look="You peer inside the fireplace.",
-    )
-    world.add_definition(fireplace)
-    world.add_definition(
-        StateWrapperDefinition(AtFactPattern(fireplace.key, location_cabin.key))
-    )
-
-    loose_board = ContainerFactDefinition(
-        key="loose_board",
-        name="Loose board",
-        text_enter="One of the wooden boards looks slightly out of place.",
-        text_examine="The board shifts when you press it. There seems to be space beneath it.",
-        text_look="You crouch down and inspect the gap beneath the board.",
-    )
-    world.add_definition(loose_board)
-    world.add_definition(
-        StateWrapperDefinition(AtFactPattern(loose_board.key, location_path_5.key))
-    )
-
     seashell = ContainerFactDefinition(
         key="seashell",
         name="Seashell",
@@ -411,14 +387,16 @@ def build_world() -> World:
     )
 
     world.add_definition(lantern_oil)
-    world.add_definition(
-        StateWrapperDefinition(AtFactPattern(lantern_oil.key, fireplace.key))
-    )
 
     CompassModule(
         character_player.to_pattern(), location_glade, unconscious_person.key
     ).apply(world)
-    CabinModule(location_path_5, location_cabin, seashell).apply(world)
+    CabinModule(
+        location_path_5,
+        location_cabin,
+        seashell,
+        [lantern_oil],
+    ).apply(world)
     StatuesModule(
         character_player.to_pattern(),
         location_path_1,

@@ -56,6 +56,9 @@ class TestCommandCatalog(unittest.TestCase):
             utterance_to_metta.get("pickup crescent rock"), "(pickup (crescent_rock))"
         )
         self.assertEqual(
+            utterance_to_metta.get("get crescent rock"), "(pickup (crescent_rock))"
+        )
+        self.assertEqual(
             utterance_to_metta.get("go to camping site"), "(move-to (camping_site))"
         )
         self.assertEqual(utterance_to_metta.get("go north"), "(move-towards (north))")

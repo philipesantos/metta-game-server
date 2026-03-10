@@ -75,7 +75,7 @@ class TestWorldBuilder(unittest.TestCase):
         )
         self.assertEqual(soil_result, [[]])
 
-    def test_using_cabin_key_on_cabin_unlocks_path_to_cabin(self):
+    def test_using_metal_key_on_cabin_unlocks_path_to_cabin(self):
         metta = get_test_metta()
         metta.run(build_world().to_metta())
 
@@ -87,9 +87,9 @@ class TestWorldBuilder(unittest.TestCase):
         )
 
         metta.run(
-            StateWrapperDefinition(AtFactPattern("cabin_key", "player")).to_metta()
+            StateWrapperDefinition(AtFactPattern("metal_key", "player")).to_metta()
         )
-        metta.run(f"!{UseFunctionPattern('cabin_key', 'cabin').to_metta()}")
+        metta.run(f"!{UseFunctionPattern('metal_key', 'cabin').to_metta()}")
 
         metta.run(StateWrapperDefinition(AtFactPattern("player", "path_5")).to_metta())
         unlocked_result = metta.run(f"!{MoveTowardsFunctionPattern('west').to_metta()}")
