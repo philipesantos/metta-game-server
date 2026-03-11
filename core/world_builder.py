@@ -83,9 +83,6 @@ def build_world() -> World:
     location_plane = LocationFactDefinition(
         key="plane", text_move_to="You are in the plane."
     )
-    location_cabin = LocationFactDefinition(
-        key="cabin", text_move_to="You are in the cabin."
-    )
     location_camping_site = LocationFactDefinition(
         key="camping_site", text_move_to="You are in the camping site."
     )
@@ -173,7 +170,6 @@ def build_world() -> World:
     world.add_definition(location_beach)
     world.add_definition(location_boat)
     world.add_definition(location_plane)
-    world.add_definition(location_cabin)
     world.add_definition(location_camping_site)
     world.add_definition(location_path_1)
     world.add_definition(location_path_2)
@@ -190,7 +186,6 @@ def build_world() -> World:
     add_route(world, location_path_3, Direction.EAST, location_plane)
     add_route(world, location_path_3, Direction.SOUTH, location_path_4)
     add_route(world, location_path_4, Direction.WEST, location_path_5)
-    add_route(world, location_path_5, Direction.WEST, location_cabin)
     add_route(world, location_path_4, Direction.SOUTH, location_camping_site)
 
     world.add_definition(
@@ -265,6 +260,7 @@ def build_world() -> World:
         text_enter="An unconscious person lies here, barely breathing.",
         text_examine="You examine the unconscious person. They seem weak but stable.",
         text_look="You check the unconscious person. Their breathing is shallow but steady.",
+        text_contents="An unconscious person lies here, barely breathing.",
     )
     world.add_definition(unconscious_person)
     world.add_definition(
@@ -279,6 +275,7 @@ def build_world() -> World:
         text_enter="An old tree trunk",
         text_examine="The tree trunk looks hollow",
         text_look="You put your hand inside the tree trunk.",
+        text_contents="An old hollow tree trunk stands nearby.",
     )
     world.add_definition(container_hollow_tree_trunk)
     world.add_definition(
@@ -293,6 +290,7 @@ def build_world() -> World:
         text_enter="A suspicious rock formation",
         text_examine="The rock formation doesn’t look natural. There seems to be a gap between the rocks.",
         text_look="You look inside the gap between the rocks.",
+        text_contents="A suspicious rock formation has a narrow gap between the rocks.",
     )
     world.add_definition(container_rock_formation)
     world.add_definition(
@@ -307,6 +305,7 @@ def build_world() -> World:
         text_enter="There is a chest near a tent",
         text_examine="It is a big chest, it looks open.",
         text_look="You look inside the chest.",
+        text_contents="A big chest sits near the tent.",
     )
     world.add_definition(big_chest)
     world.add_definition(
@@ -358,6 +357,7 @@ def build_world() -> World:
         text_enter="You see a abandoned well.",
         text_examine="A worn bucket sits inside, but the well seems dry.",
         text_look="You look inside the well.",
+        text_contents="An abandoned well stands here.",
     )
     world.add_definition(abandoned_well)
     world.add_definition(
@@ -369,7 +369,8 @@ def build_world() -> World:
         name="Bucket",
         text_enter="A worn bucket rests here.",
         text_examine="An old wooden bucket with a frayed rope handle.",
-        text_look="A worn bucket hangs inside the well.",
+        text_look="You peer into the bucket.",
+        text_contents="A worn bucket hangs inside the well.",
     )
     world.add_definition(bucket)
     world.add_definition(
@@ -382,6 +383,7 @@ def build_world() -> World:
         text_enter="A small seashell rests in the sand.",
         text_examine="Its surface is smooth and pale, shaped by the tide. The shell is slightly open, just enough to slip something inside.",
         text_look="You gently pry the shell open and look inside.",
+        text_contents="A small seashell rests in the sand.",
     )
     world.add_definition(seashell)
     world.add_definition(
@@ -405,7 +407,6 @@ def build_world() -> World:
     ).apply(world)
     CabinModule(
         location_path_5,
-        location_cabin,
         seashell,
         [lantern_oil],
     ).apply(world)

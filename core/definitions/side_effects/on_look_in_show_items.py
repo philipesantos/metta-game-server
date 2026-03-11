@@ -21,7 +21,7 @@ class OnLookInShowItems(SideEffectDefinition):
             f"                ))\n"
             f"            )\n"
             f"        ))\n"
-            f"        ({Type.CONTAINER.value} (match &self (ContainerLookText $item $text) {ResponseFactPattern(20, '$text').to_metta()}))\n"
+            f"        ({Type.CONTAINER.value} (match &self (ContainerContentsText $item $text) {ResponseFactPattern(20, '$text').to_metta()}))\n"
             f"        ($_ Empty)\n"
             f"    ))\n"
             f"))\n"

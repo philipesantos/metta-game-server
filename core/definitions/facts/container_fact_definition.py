@@ -21,6 +21,7 @@ class ContainerFactDefinition(FactDefinition):
     NAME_FACT = "ContainerName"
     ENTER_TEXT_FACT = "ContainerEnterText"
     LOOK_TEXT_FACT = "ContainerLookText"
+    CONTENTS_TEXT_FACT = "ContainerContentsText"
 
     def __init__(
         self,
@@ -29,12 +30,14 @@ class ContainerFactDefinition(FactDefinition):
         text_enter: str | None = None,
         text_examine: str | None = None,
         text_look: str | None = None,
+        text_contents: str | None = None,
     ):
         self.key = key
         self.name = name or self._default_name(key)
         self.text_enter = text_enter or self._default_descriptive_text(key)
         self.text_examine = text_examine or self._default_examine_text(key)
         self.text_look = text_look or self._default_look_text(key)
+        self.text_contents = text_contents or self._default_contents_text(key)
 
     def to_metta(self) -> str:
         trigger_examine = TriggerFunctionDefinition(
@@ -58,6 +61,9 @@ class ContainerFactDefinition(FactDefinition):
         container_look_text = (
             f"({self.LOOK_TEXT_FACT} {self.key} {self._quote(self.text_look)})\n"
         )
+        container_contents_text = (
+            f"({self.CONTENTS_TEXT_FACT} {self.key} {self._quote(self.text_contents)})\n"
+        )
         # fmt: off
         return (
             f"(: {self.key} {Type.CONTAINER.value})\n"
@@ -65,6 +71,7 @@ class ContainerFactDefinition(FactDefinition):
             f"{container_name}"
             f"{container_enter_text}"
             f"{container_look_text}"
+            f"{container_contents_text}"
             f"{trigger_examine.to_metta()}\n"
             f"{trigger_look_in.to_metta()}\n"
             f"{trigger_move_show_enter_text.to_metta()}\n"
@@ -86,6 +93,10 @@ class ContainerFactDefinition(FactDefinition):
             f"You look inside {ContainerFactDefinition._default_name(key)}, "
             f"but there is nothing notable."
         )
+
+    @staticmethod
+    def _default_contents_text(key: str) -> str:
+        return f"You notice {ContainerFactDefinition._default_name(key)} here."
 
     @staticmethod
     def _default_name(key: str) -> str:

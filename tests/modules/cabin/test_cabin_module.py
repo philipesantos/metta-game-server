@@ -3,7 +3,6 @@ import unittest
 from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
-from core.definitions.facts.route_block_fact_definition import RouteBlockFactDefinition
 from core.definitions.functions.trigger_function_definition import (
     TriggerFunctionDefinition,
 )
@@ -12,18 +11,19 @@ from core.patterns.events.use_event_pattern import UseEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.world import World
 from modules.cabin.cabin_module import CabinModule
-from modules.cabin.side_effects.cabin_module_on_use_unlock import CabinModuleOnUseUnlock
 
 
 class TestCabinModule(unittest.TestCase):
-    def test_adds_locked_route_and_unlock_trigger(self):
+    def test_adds_locked_cabin_definition_and_unlock_trigger(self):
         world = World()
         path_5 = LocationFactDefinition("path_5", "Path 5")
-        cabin = LocationFactDefinition("cabin", "Cabin")
-        seashell = ContainerFactDefinition("seashell")
+        seashell = ContainerFactDefinition(
+            "seashell",
+            text_contents="A seashell rests here.",
+        )
         oil = ItemFactDefinition("oil", "pick", "drop", "examine")
 
-        CabinModule(path_5, cabin, seashell, [oil]).apply(world)
+        CabinModule(path_5, seashell, [oil]).apply(world)
 
         metal_keys = [
             definition
@@ -36,20 +36,9 @@ class TestCabinModule(unittest.TestCase):
             definition
             for definition in world.definitions
             if isinstance(definition, ContainerFactDefinition)
-            and definition.key in ("fireplace", "loose_board")
+            and definition.key in ("cabin", "fireplace", "loose_board")
         ]
-        self.assertEqual(len(cabin_containers), 2)
-
-        route_blocks = [
-            definition
-            for definition in world.definitions
-            if isinstance(definition, RouteBlockFactDefinition)
-        ]
-        self.assertEqual(len(route_blocks), 1)
-        self.assertEqual(route_blocks[0].location_from, "path_5")
-        self.assertEqual(route_blocks[0].location_to, "cabin")
-        self.assertEqual(route_blocks[0].reason, "The cabin is locked. You need a key.")
-
+        self.assertEqual(len(cabin_containers), 3)
         cabin_state_defs = [
             definition
             for definition in world.definitions
@@ -95,7 +84,6 @@ class TestCabinModule(unittest.TestCase):
             and definition.pattern.where == "fireplace"
         ]
         self.assertEqual(len(oil_state_defs), 1)
-
         unlock_triggers = [
             definition
             for definition in world.definitions
@@ -105,12 +93,6 @@ class TestCabinModule(unittest.TestCase):
             and definition.event.with_what == "cabin"
         ]
         self.assertEqual(len(unlock_triggers), 1)
-        self.assertTrue(
-            any(
-                isinstance(side_effect, CabinModuleOnUseUnlock)
-                for side_effect in unlock_triggers[0].side_effects
-            )
-        )
 
 
 if __name__ == "__main__":

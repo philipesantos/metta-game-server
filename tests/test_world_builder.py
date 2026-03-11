@@ -4,16 +4,12 @@ from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
 from core.patterns.events.look_in_event_pattern import LookInEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
-from core.patterns.functions.move_towards_function_pattern import (
-    MoveTowardsFunctionPattern,
-)
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
 from core.patterns.functions.use_function_pattern import UseFunctionPattern
 from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 from core.world_builder import build_world
 from tests.utils.metta import get_test_metta
 from tests.utils.utils import unwrap_first_match
-from utils.direction import Direction
 from utils.response import format_metta_output
 
 
@@ -69,7 +65,7 @@ class TestWorldBuilder(unittest.TestCase):
         )
         output_lines = format_metta_output(result).splitlines()
 
-        self.assertEqual(output_lines.count("A worn bucket hangs inside the well."), 1)
+        self.assertEqual(output_lines.count("You peer into the bucket."), 1)
         self.assertGreaterEqual(len(output_lines), 1)
 
     def test_use_shovel_on_disturbed_soil_reveals_iron_box(self):
@@ -100,30 +96,55 @@ class TestWorldBuilder(unittest.TestCase):
         )
         self.assertEqual(soil_result, [[]])
 
-    def test_using_metal_key_on_cabin_unlocks_path_to_cabin(self):
+    def test_using_key_on_cabin_reveals_cabin_contents(self):
         metta = get_test_metta()
         metta.run(build_world().to_metta())
 
-        metta.run(StateWrapperDefinition(AtFactPattern("player", "path_5")).to_metta())
-        blocked_result = metta.run(
-            f"!{MoveTowardsFunctionPattern(Direction.WEST).to_metta()}"
+        locked_result = metta.run(
+            f"!{TriggerFunctionPattern(LookInEventPattern('cabin')).to_metta()}"
         )
-        self.assertEqual(
-            unwrap_first_match(blocked_result).text,
-            "The cabin is locked. You need a key.",
-        )
-
-        metta.run(
-            StateWrapperDefinition(AtFactPattern("metal_key", "player")).to_metta()
-        )
-        metta.run(f"!{UseFunctionPattern('metal_key', 'cabin').to_metta()}")
+        locked_output_lines = format_metta_output(locked_result).splitlines()
+        self.assertIn("The cabin is locked.", locked_output_lines)
+        self.assertNotIn("You peer inside the fireplace.", locked_output_lines)
 
         metta.run(StateWrapperDefinition(AtFactPattern("player", "path_5")).to_metta())
-        unlocked_result = metta.run(
-            f"!{MoveTowardsFunctionPattern(Direction.WEST).to_metta()}"
+        metta.run(StateWrapperDefinition(AtFactPattern("metal_key", "player")).to_metta())
+        unlock_result = metta.run(
+            f"!{UseFunctionPattern('metal_key', 'cabin').to_metta()}"
         )
-        output_lines = format_metta_output(unlocked_result).splitlines()
-        self.assertIn("You are in the cabin.", output_lines)
+        self.assertIn(
+            "You unlock the cabin door.",
+            format_metta_output(unlock_result).splitlines(),
+        )
+        metal_key_state = StateWrapperPattern(AtFactPattern("metal_key", "player"))
+        metal_key_state_result = metta.run(
+            f"!(match &self {metal_key_state.to_metta()} {metal_key_state.to_metta()})"
+        )
+        self.assertEqual(metal_key_state_result, [[]])
+        cabin_state = StateWrapperPattern(AtFactPattern("cabin", "path_5"))
+        cabin_state_result = metta.run(
+            f"!(match &self {cabin_state.to_metta()} {cabin_state.to_metta()})"
+        )
+        self.assertEqual(unwrap_first_match(cabin_state_result), cabin_state.to_metta())
+
+        cabin_result = metta.run(
+            f"!{TriggerFunctionPattern(LookInEventPattern('cabin')).to_metta()}"
+        )
+        cabin_output_lines = format_metta_output(cabin_result).splitlines()
+        self.assertIn("You look inside the cabin.", cabin_output_lines)
+        self.assertIn("A cold stone fireplace is built into the far wall.", cabin_output_lines)
+        self.assertIn(
+            "One floorboard near the wall sits slightly loose.",
+            cabin_output_lines,
+        )
+
+        fireplace_result = metta.run(
+            f"!{TriggerFunctionPattern(LookInEventPattern('fireplace')).to_metta()}"
+        )
+        self.assertIn(
+            "You peer inside the fireplace.",
+            format_metta_output(fireplace_result).splitlines(),
+        )
 
 
 if __name__ == "__main__":

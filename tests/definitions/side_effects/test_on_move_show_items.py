@@ -52,7 +52,12 @@ class TestOnMoveShowItems(unittest.TestCase):
                 text_enter="A silver coin glints in the grass.",
             ).to_metta()
         )
-        metta.run(ContainerFactDefinition("hollow_tree_trunk").to_metta())
+        metta.run(
+            ContainerFactDefinition(
+                "hollow_tree_trunk",
+                text_contents="A hollow tree trunk stands nearby.",
+            ).to_metta()
+        )
         metta.run(StateWrapperDefinition(AtFactPattern("coin", "glade")).to_metta())
         metta.run(
             StateWrapperDefinition(

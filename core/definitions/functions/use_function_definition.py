@@ -45,5 +45,5 @@ class UseFunctionDefinition(FunctionDefinition):
                 "use {item} with {target}",
             ),
             metta="(use ({item} {target}))",
-            slots={"item": SlotSpec("item"), "target": SlotSpec("item")},
+            slots={"item": SlotSpec("item"), "target": SlotSpec("examinable")},
         )

@@ -25,6 +25,7 @@ class TestContainerFactDefinition(unittest.TestCase):
         text_enter = "A weathered chest sits in the corner."
         text_examine = "The lid is warped and bound with rusted iron."
         text_look = "Inside, the chest smells of cedar."
+        text_contents = "A weathered chest sits beneath the window."
         metta.run(
             ContainerFactDefinition(
                 key,
@@ -32,6 +33,7 @@ class TestContainerFactDefinition(unittest.TestCase):
                 text_enter=text_enter,
                 text_examine=text_examine,
                 text_look=text_look,
+                text_contents=text_contents,
             ).to_metta()
         )
 
@@ -51,6 +53,11 @@ class TestContainerFactDefinition(unittest.TestCase):
             f"!(match &self (ContainerLookText {key} $text) $text)"
         )
         self.assertEqual(unwrap_first_match(result_look_text), text_look)
+
+        result_contents_text = metta.run(
+            f"!(match &self (ContainerContentsText {key} $text) $text)"
+        )
+        self.assertEqual(unwrap_first_match(result_contents_text), text_contents)
 
         result_name = metta.run(f"!(match &self (ContainerName {key} $name) $name)")
         self.assertEqual(unwrap_first_match(result_name), name)

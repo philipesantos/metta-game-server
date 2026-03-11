@@ -1,5 +1,6 @@
 import unittest
 
+from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.functions.trigger_function_definition import (
     TriggerFunctionDefinition,
@@ -52,6 +53,30 @@ class TestOnLookInShowItems(unittest.TestCase):
         result = metta.run(f"!{trigger_look_in.to_metta()}")
 
         self.assertEqual(unwrap_first_match(result).text, "There is nothing inside")
+
+    def test_shows_container_contents_text_for_nested_container(self):
+        metta = get_test_metta()
+
+        metta.run(
+            ContainerFactDefinition(
+                "fireplace",
+                text_look="You peer inside the fireplace.",
+                text_contents="A cold stone fireplace is built into the far wall.",
+            ).to_metta()
+        )
+        metta.run(StateWrapperDefinition(AtFactPattern("fireplace", "cabin")).to_metta())
+        metta.run(
+            TriggerFunctionDefinition(
+                LookInEventPattern("$container"), [OnLookInShowItems()]
+            ).to_metta()
+        )
+
+        result = metta.run(f"!{TriggerFunctionPattern(LookInEventPattern('cabin')).to_metta()}")
+
+        self.assertEqual(
+            format_metta_output(result),
+            "A cold stone fireplace is built into the far wall.",
+        )
 
 
 if __name__ == "__main__":

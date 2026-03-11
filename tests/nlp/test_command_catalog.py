@@ -40,7 +40,12 @@ class TestCommandCatalog(unittest.TestCase):
             LocationFactDefinition("camping_site", "You are at the camp.")
         )
         world.add_definition(LocationFactDefinition("glade", "You are in the glade."))
-        world.add_definition(ContainerFactDefinition("wooden_chest"))
+        world.add_definition(
+            ContainerFactDefinition(
+                "wooden_chest",
+                text_contents="A wooden chest sits here.",
+            )
+        )
         world.add_definition(InventoryFunctionPattern(character))
         world.add_definition(MoveToFunctionDefinition(character))
         world.add_definition(MoveTowardsFunctionDefinition(character))
