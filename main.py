@@ -13,7 +13,9 @@ def main():
     metta = MeTTa()
     world = build_world()
     metta_code = world.to_metta()
-    command_catalog = build_command_catalog(world)
+    print(metta_code)
+    print(metta.run(metta_code))
+    command_catalog = build_command_catalog(world, metta)
     embedding_index = EmbeddingIndex(
         command_catalog,
         model_name="BAAI/bge-small-en-v1.5",
@@ -22,8 +24,6 @@ def main():
         high_confidence_score=0.82,
     )
 
-    print(metta_code)
-    print(metta.run(metta_code))
     startup_output = metta.run(
         f"!{TriggerFunctionPattern(StartupEventPattern()).to_metta()}"
     )
@@ -45,6 +45,8 @@ def main():
         if stripped.startswith("!") or stripped.startswith("("):
             metta_query = stripped
         else:
+            command_catalog = build_command_catalog(world, metta)
+            embedding_index.update_entries(command_catalog)
             match = embedding_index.match(stripped)
             if match is None:
                 print("No commands available.")

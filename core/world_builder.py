@@ -49,6 +49,7 @@ from core.definitions.side_effects.on_look_in_show_items import OnLookInShowItem
 from core.definitions.side_effects.on_startup_show_items import OnStartupShowItems
 from core.definitions.side_effects.on_use_do_nothing import OnUseDoNothing
 from core.definitions.side_effects.on_use_reveal_item import OnUseRevealItem
+from core.definitions.side_effects.on_use_transform_item import OnUseTransformItem
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
 from core.patterns.events.drop_event_pattern import DropEventPattern
 from core.patterns.events.move_event_pattern import MoveEventPattern
@@ -190,20 +191,6 @@ def build_world() -> World:
 
     world.add_definition(
         StateWrapperDefinition(AtFactPattern(character_player.key, location_glade.key))
-    )
-
-    small_rock = ItemFactDefinition(
-        key="small_rock",
-        name="Small rock",
-        text_pickup="You pick up the small rock.",
-        text_drop="You place the small rock on the floor.",
-        text_examine="A smooth, palm-sized stone with flecks of quartz.",
-        text_enter="A small rock rests on the floor.",
-        text_look="Inside, a small rock lies on the floor.",
-    )
-    world.add_definition(small_rock)
-    world.add_definition(
-        StateWrapperDefinition(AtFactPattern(small_rock.key, location_glade.key))
     )
 
     disturbed_soil = ItemFactDefinition(
@@ -351,6 +338,16 @@ def build_world() -> World:
         StateWrapperDefinition(AtFactPattern(lantern.key, big_chest.key))
     )
 
+    functioning_lantern = ItemFactDefinition(
+        key="functioning_lantern",
+        name="Lantern",
+        text_pickup="You pick up the lantern.",
+        text_drop="You drop the lantern.",
+        text_examine="A weathered lantern filled with fresh oil. It is ready to be lit.",
+        text_enter="You see a lantern filled with fresh oil.",
+        text_look="Inside, a lantern filled with fresh oil rests in the chest.",
+    )
+
     abandoned_well = ContainerFactDefinition(
         key="well",
         name="Abandoned well",
@@ -401,6 +398,15 @@ def build_world() -> World:
     )
 
     world.add_definition(lantern_oil)
+    world.add_definition(
+        TriggerFunctionDefinition(
+            UseEventPattern(lantern_oil.key, lantern.key),
+            [
+                OnUseTransformItem(lantern, functioning_lantern, lantern_oil.key),
+                OnEventPrint("You pour the oil into the lantern. It is ready to use."),
+            ],
+        )
+    )
 
     CompassModule(
         character_player.to_pattern(), location_glade, unconscious_person.key
