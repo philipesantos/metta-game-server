@@ -110,6 +110,28 @@ class TestPickUpFunctionDefinition(unittest.TestCase):
             "You cannot pick that up",
         )
 
+    def test_returns_message_when_item_is_already_in_inventory(self):
+        metta = get_test_metta()
+
+        character = CharacterFactPattern("player", "John")
+
+        self._register_pickup_functions(metta)
+        metta.run(PickUpFunctionDefinition(character).to_metta())
+
+        metta.run(LocationFactDefinition("glade", "A quiet glade.").to_metta())
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
+        )
+        metta.run(StateWrapperDefinition(AtFactPattern("coin", character.key)).to_metta())
+        metta.run(PickupableFactPattern("coin").to_metta())
+
+        pickup = PickUpFunctionPattern("coin")
+        result_pickup = metta.run(f"!{pickup.to_metta()}")
+        self.assertEqual(
+            unwrap_first_match(result_pickup).text,
+            "You already have that",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

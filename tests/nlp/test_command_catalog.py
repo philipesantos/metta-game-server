@@ -23,19 +23,26 @@ from core.definitions.functions.examine_function_definition import (
 )
 from core.definitions.functions.use_function_definition import UseFunctionDefinition
 from core.nlp import build_command_catalog
+from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
+from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.world import World
+from tests.utils.metta import get_test_metta
 
 
 class TestCommandCatalog(unittest.TestCase):
-    def test_builds_commands_from_world_definitions(self):
+    def test_builds_commands_from_runtime_metta_state(self):
         character = CharacterFactPattern("player", "John")
+        metta = get_test_metta()
 
         world = World()
         world.add_definition(
             ItemFactDefinition("crescent_rock", "pick", "drop", "examine")
         )
         world.add_definition(ItemFactDefinition("compass", "pick", "drop", "examine"))
+        world.add_definition(
+            ItemFactDefinition("oil", "pick", "drop", "examine")
+        )
         world.add_definition(
             LocationFactDefinition("camping_site", "You are at the camp.")
         )
@@ -53,8 +60,18 @@ class TestCommandCatalog(unittest.TestCase):
         world.add_definition(LookInFunctionDefinition(character))
         world.add_definition(ExamineFunctionDefinition(character))
         world.add_definition(UseFunctionDefinition(character))
+        world.add_definition(StateWrapperDefinition(AtFactPattern("player", "glade")))
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern("crescent_rock", "glade"))
+        )
+        world.add_definition(StateWrapperDefinition(AtFactPattern("compass", "player")))
+        world.add_definition(StateWrapperDefinition(AtFactPattern("oil", "glade")))
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern("wooden_chest", "glade"))
+        )
 
-        catalog = build_command_catalog(world)
+        metta.run(world.to_metta())
+        catalog = build_command_catalog(world, metta)
         utterance_to_metta = {entry.utterance: entry.metta for entry in catalog}
 
         self.assertEqual(
@@ -63,6 +80,10 @@ class TestCommandCatalog(unittest.TestCase):
         self.assertEqual(
             utterance_to_metta.get("get crescent rock"), "(pickup (crescent_rock))"
         )
+        self.assertEqual(
+            utterance_to_metta.get("get compass"), "(pickup (compass))"
+        )
+        self.assertEqual(utterance_to_metta.get("get oil"), "(pickup (oil))")
         self.assertEqual(
             utterance_to_metta.get("go to camping site"), "(move-to (camping_site))"
         )
@@ -91,6 +112,49 @@ class TestCommandCatalog(unittest.TestCase):
         self.assertEqual(
             utterance_to_metta.get("search wooden chest"),
             "(look-in (wooden_chest))",
+        )
+
+    def test_prefers_active_runtime_key_when_display_name_matches(self):
+        character = CharacterFactPattern("player", "John")
+        metta = get_test_metta()
+
+        world = World()
+        world.add_definition(
+            ItemFactDefinition(
+                "lantern",
+                "pick",
+                "drop",
+                "dry lantern",
+                name="Lantern",
+            )
+        )
+        world.add_definition(
+            ItemFactDefinition(
+                "lantern_2",
+                "pick",
+                "drop",
+                "fueled lantern",
+                name="Lantern",
+            )
+        )
+        world.add_definition(LocationFactDefinition("glade", "You are in the glade."))
+        world.add_definition(InventoryFunctionPattern(character))
+        world.add_definition(MoveToFunctionDefinition(character))
+        world.add_definition(MoveTowardsFunctionDefinition(character))
+        world.add_definition(PickUpFunctionDefinition(character))
+        world.add_definition(LookInFunctionDefinition(character))
+        world.add_definition(ExamineFunctionDefinition(character))
+        world.add_definition(UseFunctionDefinition(character))
+        world.add_definition(StateWrapperDefinition(AtFactPattern("player", "glade")))
+        world.add_definition(StateWrapperDefinition(AtFactPattern("lantern_2", "glade")))
+
+        metta.run(world.to_metta())
+        catalog = build_command_catalog(world, metta)
+        utterance_to_metta = {entry.utterance: entry.metta for entry in catalog}
+
+        self.assertEqual(utterance_to_metta.get("get lantern 2"), "(pickup (lantern_2))")
+        self.assertEqual(
+            utterance_to_metta.get("examine lantern 2"), "(examine (lantern_2))"
         )
 
 

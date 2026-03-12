@@ -2,6 +2,7 @@ import unittest
 
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
+from core.patterns.functions.examine_function_pattern import ExamineFunctionPattern
 from core.patterns.events.look_in_event_pattern import LookInEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
@@ -39,10 +40,7 @@ class TestWorldBuilder(unittest.TestCase):
             output_lines.count("Inside, an old shovel leans against the chest wall."),
             1,
         )
-        self.assertEqual(
-            output_lines.count("Inside, a weathered lantern lies in the chest."),
-            1,
-        )
+        self.assertEqual(output_lines.count("Inside, a weathered lantern lies in the chest."), 1)
 
     def test_look_in_well_lists_bucket_once(self):
         metta = get_test_metta()
@@ -144,6 +142,45 @@ class TestWorldBuilder(unittest.TestCase):
         self.assertIn(
             "You peer inside the fireplace.",
             format_metta_output(fireplace_result).splitlines(),
+        )
+
+    def test_using_oil_on_lantern_creates_functioning_lantern(self):
+        metta = get_test_metta()
+        metta.run(build_world().to_metta())
+
+        metta.run(StateWrapperDefinition(AtFactPattern("player", "glade")).to_metta())
+        metta.run(StateWrapperDefinition(AtFactPattern("lantern", "player")).to_metta())
+        metta.run(StateWrapperDefinition(AtFactPattern("oil", "player")).to_metta())
+
+        result = metta.run(f"!{UseFunctionPattern('oil', 'lantern').to_metta()}")
+        output_lines = format_metta_output(result).splitlines()
+
+        self.assertIn(
+            "You pour the oil into the lantern. It is ready to use.",
+            output_lines,
+        )
+
+        oil_state = StateWrapperPattern(AtFactPattern("oil", "player"))
+        oil_state_result = metta.run(
+            f"!(match &self {oil_state.to_metta()} {oil_state.to_metta()})"
+        )
+        self.assertEqual(oil_state_result, [[]])
+
+        lantern_state = StateWrapperPattern(AtFactPattern("lantern", "player"))
+        lantern_state_result = metta.run(
+            f"!(match &self {lantern_state.to_metta()} {lantern_state.to_metta()})"
+        )
+        self.assertEqual(lantern_state_result, [[]])
+
+        functioning_lantern_state = StateWrapperPattern(
+            AtFactPattern("functioning_lantern", "player")
+        )
+        functioning_lantern_state_result = metta.run(
+            f"!(match &self {functioning_lantern_state.to_metta()} {functioning_lantern_state.to_metta()})"
+        )
+        self.assertEqual(
+            unwrap_first_match(functioning_lantern_state_result),
+            functioning_lantern_state.to_metta(),
         )
 
 

@@ -9,6 +9,7 @@ from core.nlp import CommandEntry, EmbeddingIndex
 class _FakeSentenceTransformer:
     def __init__(self, vectors: dict[str, np.ndarray]):
         self._vectors = vectors
+        self.calls: list[list[str]] = []
 
     def encode(
         self,
@@ -17,6 +18,7 @@ class _FakeSentenceTransformer:
         convert_to_numpy=True,
         show_progress_bar=False,
     ):
+        self.calls.append(list(texts))
         vectors = np.array([self._vectors[text] for text in texts], dtype=np.float32)
         if normalize_embeddings:
             norms = np.linalg.norm(vectors, axis=1, keepdims=True)
@@ -165,6 +167,40 @@ class TestEmbeddingIndex(unittest.TestCase):
 
         self.assertIsNotNone(match)
         self.assertEqual(match.entry.utterance, "inventory")
+
+    def test_update_entries_reuses_cached_embeddings_for_existing_utterances(self):
+        initial_entries = [
+            CommandEntry(
+                utterance="pickup compass",
+                intent="pickup",
+                metta="(pickup (compass))",
+                slots={"item": "compass"},
+            )
+        ]
+        updated_entries = [
+            initial_entries[0],
+            CommandEntry(
+                utterance="pickup lantern",
+                intent="pickup",
+                metta="(pickup (lantern))",
+                slots={"item": "lantern"},
+            ),
+        ]
+        vectors = {
+            "pickup compass": np.array([1.0, 0.0], dtype=np.float32),
+            "pickup lantern": np.array([0.0, 1.0], dtype=np.float32),
+        }
+        fake_model = _FakeSentenceTransformer(vectors)
+
+        with patch(
+            "core.nlp.embedding_index.SentenceTransformer",
+            return_value=fake_model,
+        ):
+            index = EmbeddingIndex(initial_entries, model_name="fake")
+            index.update_entries(updated_entries)
+
+        self.assertEqual(fake_model.calls[0], ["pickup compass"])
+        self.assertEqual(fake_model.calls[1], ["pickup lantern"])
 
 
 if __name__ == "__main__":

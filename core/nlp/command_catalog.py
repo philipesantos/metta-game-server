@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from itertools import product
 
-from core.definitions.facts.container_fact_definition import ContainerFactDefinition
-from core.definitions.facts.item_fact_definition import ItemFactDefinition
-from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.nlp.nl_spec import NLSpec
 from utils.direction import Direction
 
@@ -26,37 +23,67 @@ def _humanize_key(value: str) -> str:
     return value.replace("_", " ")
 
 
-def _resolve_items(world) -> list[SlotValue]:
-    keys = sorted(
-        {d.key for d in world.definitions if isinstance(d, ItemFactDefinition)}
-    )
+def _unwrap_atom(atom) -> str:
+    if hasattr(atom, "get_object"):
+        obj = atom.get_object()
+        if hasattr(obj, "value"):
+            return str(obj.value)
+        if hasattr(obj, "content"):
+            return str(obj.content)
+        return str(obj)
+    if hasattr(atom, "get_name"):
+        return atom.get_name()
+    return str(atom)
+
+
+def _query_values(metta, pattern: str, value: str) -> list[str]:
+    result = metta.run(f"!(match &self {pattern} {value})")
+    values: list[str] = []
+    for match in result:
+        for atom in match:
+            values.append(_unwrap_atom(atom))
+    return values
+
+
+def _active_keys(metta) -> set[str]:
+    return set(_query_values(metta, "(State (At $what $where))", "$what"))
+
+
+def _resolve_active_entities(metta, fact_name: str) -> list[SlotValue]:
+    active_keys = _active_keys(metta)
+    typed_keys = set(_query_values(metta, f"({fact_name} $key)", "$key"))
+    keys = sorted(active_keys & typed_keys)
+    return [SlotValue(key=key, text=_humanize_key(key).lower()) for key in keys]
+
+
+def _resolve_items(metta, _world) -> list[SlotValue]:
+    return _resolve_active_entities(metta, "Item")
+
+
+def _resolve_examinables(metta, _world) -> list[SlotValue]:
+    items = _resolve_items(metta, _world)
+    containers = _resolve_containers(metta, _world)
+    seen: set[tuple[str, str]] = set()
+    values: list[SlotValue] = []
+    for value in items + containers:
+        key = (value.key, value.text)
+        if key in seen:
+            continue
+        seen.add(key)
+        values.append(value)
+    return values
+
+
+def _resolve_locations(metta, _world) -> list[SlotValue]:
+    keys = sorted(set(_query_values(metta, "(Location $key)", "$key")))
     return [SlotValue(key=k, text=_humanize_key(k)) for k in keys]
 
 
-def _resolve_examinables(world) -> list[SlotValue]:
-    item_keys = {d.key for d in world.definitions if isinstance(d, ItemFactDefinition)}
-    container_keys = {
-        d.key for d in world.definitions if isinstance(d, ContainerFactDefinition)
-    }
-    keys = sorted(item_keys | container_keys)
-    return [SlotValue(key=k, text=_humanize_key(k)) for k in keys]
+def _resolve_containers(metta, _world) -> list[SlotValue]:
+    return _resolve_active_entities(metta, "Container")
 
 
-def _resolve_locations(world) -> list[SlotValue]:
-    keys = sorted(
-        {d.key for d in world.definitions if isinstance(d, LocationFactDefinition)}
-    )
-    return [SlotValue(key=k, text=_humanize_key(k)) for k in keys]
-
-
-def _resolve_containers(world) -> list[SlotValue]:
-    keys = sorted(
-        {d.key for d in world.definitions if isinstance(d, ContainerFactDefinition)}
-    )
-    return [SlotValue(key=k, text=_humanize_key(k)) for k in keys]
-
-
-def _resolve_directions(_world) -> list[SlotValue]:
+def _resolve_directions(_metta, _world) -> list[SlotValue]:
     keys = [direction.value for direction in Direction]
     return [SlotValue(key=k, text=k) for k in keys]
 
@@ -70,7 +97,7 @@ DEFAULT_SLOT_RESOLVERS = {
 }
 
 
-def build_command_catalog(world, slot_resolvers=None) -> list[CommandEntry]:
+def build_command_catalog(world, metta, slot_resolvers=None) -> list[CommandEntry]:
     resolver_map = dict(DEFAULT_SLOT_RESOLVERS)
     if slot_resolvers:
         resolver_map.update(slot_resolvers)
@@ -105,7 +132,7 @@ def build_command_catalog(world, slot_resolvers=None) -> list[CommandEntry]:
             resolver = resolver_map.get(slot_spec.slot_type)
             if resolver is None:
                 raise ValueError(f"Missing slot resolver for '{slot_spec.slot_type}'")
-            slot_values.append((slot_name, resolver(world)))
+            slot_values.append((slot_name, resolver(metta, world)))
 
         slot_names = [name for name, _ in slot_values]
         value_lists = [values for _, values in slot_values]
@@ -119,8 +146,8 @@ def build_command_catalog(world, slot_resolvers=None) -> list[CommandEntry]:
             }
             for template in spec.templates:
                 utterance = template.format(**slot_text_map)
-                metta = spec.metta.format(**slot_value_map)
-                key = (utterance, metta)
+                metta_command = spec.metta.format(**slot_value_map)
+                key = (utterance, metta_command)
                 if key in seen:
                     continue
                 seen.add(key)
@@ -128,7 +155,7 @@ def build_command_catalog(world, slot_resolvers=None) -> list[CommandEntry]:
                     CommandEntry(
                         utterance=utterance,
                         intent=spec.intent,
-                        metta=metta,
+                        metta=metta_command,
                         slots=slot_value_map,
                     )
                 )

@@ -91,6 +91,36 @@ class TestUseFunctionDefinition(unittest.TestCase):
             unwrap_first_match(result).text, "There is nothing to use that on"
         )
 
+    def test_triggers_use_event_when_target_is_in_inventory(self):
+        metta = get_test_metta()
+
+        character = CharacterFactPattern("player", "John")
+
+        metta.run(ExistsFunctionDefinition().to_metta())
+        metta.run(UseFunctionDefinition(character).to_metta())
+        metta.run(
+            TriggerFunctionDefinition(
+                UseEventPattern("$what", "$with_what"),
+                [OnEventPrint("Used")],
+            ).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(
+                AtFactPattern("crescent_rock", character.key)
+            ).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern("compass", character.key)).to_metta()
+        )
+
+        use_action = UseFunctionPattern("crescent_rock", "compass")
+        result = metta.run(f"!{use_action.to_metta()}")
+
+        self.assertEqual(unwrap_first_match(result).text, "Used")
+
 
 if __name__ == "__main__":
     unittest.main()

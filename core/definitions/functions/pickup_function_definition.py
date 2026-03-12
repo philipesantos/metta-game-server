@@ -22,6 +22,9 @@ class PickUpFunctionDefinition(FunctionDefinition):
         location_path = LocationPathFunctionPattern("$what")
         first_location = FirstFunctionPattern("$location_path")
         last_location = LastFunctionPattern("$location_path")
+        state_at_inventory = StateWrapperPattern(
+            AtFactPattern("$what", self.character.key)
+        )
         state_at_match = StateWrapperPattern(
             AtFactPattern(self.character.key, "$last_location")
         )
@@ -31,15 +34,18 @@ class PickUpFunctionDefinition(FunctionDefinition):
         # fmt: off
         return (
             f"(= (pickup ($what))\n"
-            f"    (let $location_path {location_path.to_metta()}\n"
-            f"        (let $first_location {first_location.to_metta()}\n"
-            f"            (let $last_location {last_location.to_metta()}\n"
-            f"                (if (exists {state_at_match.to_metta()})\n"
-            f"                    (if (exists {pickupable_match.to_metta()})\n"
-            f"                        {pickup_trigger.to_metta()}\n"
-            f'                        {ResponseFactPattern(100, '"You cannot pick that up"').to_metta()}\n'
+            f"    (if (exists {state_at_inventory.to_metta()})\n"
+            f'        {ResponseFactPattern(100, '"You already have that"').to_metta()}\n'
+            f"        (let $location_path {location_path.to_metta()}\n"
+            f"            (let $first_location {first_location.to_metta()}\n"
+            f"                (let $last_location {last_location.to_metta()}\n"
+            f"                    (if (exists {state_at_match.to_metta()})\n"
+            f"                        (if (exists {pickupable_match.to_metta()})\n"
+            f"                            {pickup_trigger.to_metta()}\n"
+            f'                            {ResponseFactPattern(100, '"You cannot pick that up"').to_metta()}\n'
+            f"                        )\n"
+            f'                        {ResponseFactPattern(100, '"There is no such item"').to_metta()}\n'
             f"                    )\n"
-            f'                    {ResponseFactPattern(100, '"There is no such item"').to_metta()}\n'
             f"                )\n"
             f"            )\n"
             f"        )\n"
