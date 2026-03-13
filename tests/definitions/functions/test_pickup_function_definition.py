@@ -122,7 +122,9 @@ class TestPickUpFunctionDefinition(unittest.TestCase):
         metta.run(
             StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
         )
-        metta.run(StateWrapperDefinition(AtFactPattern("coin", character.key)).to_metta())
+        metta.run(
+            StateWrapperDefinition(AtFactPattern("coin", character.key)).to_metta()
+        )
         metta.run(PickupableFactPattern("coin").to_metta())
 
         pickup = PickUpFunctionPattern("coin")

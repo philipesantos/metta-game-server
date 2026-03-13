@@ -40,9 +40,7 @@ class TestCommandCatalog(unittest.TestCase):
             ItemFactDefinition("crescent_rock", "pick", "drop", "examine")
         )
         world.add_definition(ItemFactDefinition("compass", "pick", "drop", "examine"))
-        world.add_definition(
-            ItemFactDefinition("oil", "pick", "drop", "examine")
-        )
+        world.add_definition(ItemFactDefinition("oil", "pick", "drop", "examine"))
         world.add_definition(
             LocationFactDefinition("camping_site", "You are at the camp.")
         )
@@ -80,9 +78,7 @@ class TestCommandCatalog(unittest.TestCase):
         self.assertEqual(
             utterance_to_metta.get("get crescent rock"), "(pickup (crescent_rock))"
         )
-        self.assertEqual(
-            utterance_to_metta.get("get compass"), "(pickup (compass))"
-        )
+        self.assertEqual(utterance_to_metta.get("get compass"), "(pickup (compass))")
         self.assertEqual(utterance_to_metta.get("get oil"), "(pickup (oil))")
         self.assertEqual(
             utterance_to_metta.get("go to camping site"), "(move-to (camping_site))"
@@ -146,13 +142,17 @@ class TestCommandCatalog(unittest.TestCase):
         world.add_definition(ExamineFunctionDefinition(character))
         world.add_definition(UseFunctionDefinition(character))
         world.add_definition(StateWrapperDefinition(AtFactPattern("player", "glade")))
-        world.add_definition(StateWrapperDefinition(AtFactPattern("lantern_2", "glade")))
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern("lantern_2", "glade"))
+        )
 
         metta.run(world.to_metta())
         catalog = build_command_catalog(world, metta)
         utterance_to_metta = {entry.utterance: entry.metta for entry in catalog}
 
-        self.assertEqual(utterance_to_metta.get("get lantern 2"), "(pickup (lantern_2))")
+        self.assertEqual(
+            utterance_to_metta.get("get lantern 2"), "(pickup (lantern_2))"
+        )
         self.assertEqual(
             utterance_to_metta.get("examine lantern 2"), "(examine (lantern_2))"
         )

@@ -61,9 +61,7 @@ class ContainerFactDefinition(FactDefinition):
         container_look_text = (
             f"({self.LOOK_TEXT_FACT} {self.key} {self._quote(self.text_look)})\n"
         )
-        container_contents_text = (
-            f"({self.CONTENTS_TEXT_FACT} {self.key} {self._quote(self.text_contents)})\n"
-        )
+        container_contents_text = f"({self.CONTENTS_TEXT_FACT} {self.key} {self._quote(self.text_contents)})\n"
         # fmt: off
         return (
             f"(: {self.key} {Type.CONTAINER.value})\n"
