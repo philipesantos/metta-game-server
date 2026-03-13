@@ -50,7 +50,9 @@ class EmbeddingIndex:
             for text, embedding in zip(missing_texts, missing_embeddings):
                 self._embedding_cache[text] = embedding
 
-        return np.array([self._embedding_cache[text] for text in texts], dtype=np.float32)
+        return np.array(
+            [self._embedding_cache[text] for text in texts], dtype=np.float32
+        )
 
     def match(self, query: str) -> MatchResult | None:
         if not self.entries:

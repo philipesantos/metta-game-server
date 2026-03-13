@@ -64,14 +64,18 @@ class TestOnLookInShowItems(unittest.TestCase):
                 text_contents="A cold stone fireplace is built into the far wall.",
             ).to_metta()
         )
-        metta.run(StateWrapperDefinition(AtFactPattern("fireplace", "cabin")).to_metta())
+        metta.run(
+            StateWrapperDefinition(AtFactPattern("fireplace", "cabin")).to_metta()
+        )
         metta.run(
             TriggerFunctionDefinition(
                 LookInEventPattern("$container"), [OnLookInShowItems()]
             ).to_metta()
         )
 
-        result = metta.run(f"!{TriggerFunctionPattern(LookInEventPattern('cabin')).to_metta()}")
+        result = metta.run(
+            f"!{TriggerFunctionPattern(LookInEventPattern('cabin')).to_metta()}"
+        )
 
         self.assertEqual(
             format_metta_output(result),

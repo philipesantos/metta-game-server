@@ -35,7 +35,9 @@ class CabinModule(Module):
         )
         world.add_definition(locked_cabin)
         world.add_definition(
-            StateWrapperDefinition(AtFactPattern(locked_cabin.key, self.cabin_location.key))
+            StateWrapperDefinition(
+                AtFactPattern(locked_cabin.key, self.cabin_location.key)
+            )
         )
 
         cabin_container = ContainerFactDefinition(

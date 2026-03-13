@@ -40,7 +40,9 @@ class TestWorldBuilder(unittest.TestCase):
             output_lines.count("Inside, an old shovel leans against the chest wall."),
             1,
         )
-        self.assertEqual(output_lines.count("Inside, a weathered lantern lies in the chest."), 1)
+        self.assertEqual(
+            output_lines.count("Inside, a weathered lantern lies in the chest."), 1
+        )
 
     def test_look_in_well_lists_bucket_once(self):
         metta = get_test_metta()
@@ -112,7 +114,9 @@ class TestWorldBuilder(unittest.TestCase):
         self.assertNotIn("You peer inside the fireplace.", locked_output_lines)
 
         metta.run(StateWrapperDefinition(AtFactPattern("player", "path_5")).to_metta())
-        metta.run(StateWrapperDefinition(AtFactPattern("metal_key", "player")).to_metta())
+        metta.run(
+            StateWrapperDefinition(AtFactPattern("metal_key", "player")).to_metta()
+        )
         unlock_result = metta.run(
             f"!{UseFunctionPattern('metal_key', 'locked_cabin').to_metta()}"
         )
@@ -125,7 +129,9 @@ class TestWorldBuilder(unittest.TestCase):
             f"!(match &self {metal_key_state.to_metta()} {metal_key_state.to_metta()})"
         )
         self.assertEqual(metal_key_state_result, [[]])
-        locked_cabin_state = StateWrapperPattern(AtFactPattern("locked_cabin", "path_5"))
+        locked_cabin_state = StateWrapperPattern(
+            AtFactPattern("locked_cabin", "path_5")
+        )
         locked_cabin_state_result = metta.run(
             f"!(match &self {locked_cabin_state.to_metta()} {locked_cabin_state.to_metta()})"
         )
@@ -141,7 +147,9 @@ class TestWorldBuilder(unittest.TestCase):
         )
         cabin_output_lines = format_metta_output(cabin_result).splitlines()
         self.assertIn("You look inside the cabin.", cabin_output_lines)
-        self.assertIn("A cold stone fireplace is built into the far wall.", cabin_output_lines)
+        self.assertIn(
+            "A cold stone fireplace is built into the far wall.", cabin_output_lines
+        )
         self.assertIn(
             "One floorboard near the wall sits slightly loose.",
             cabin_output_lines,

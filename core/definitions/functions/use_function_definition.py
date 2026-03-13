@@ -18,7 +18,9 @@ class UseFunctionDefinition(FunctionDefinition):
             AtFactPattern(self.character.key, "$where")
         )
         state_at_item = StateWrapperPattern(AtFactPattern("$what", self.character.key))
-        state_at_target_here = StateWrapperPattern(AtFactPattern("$with_what", "$where"))
+        state_at_target_here = StateWrapperPattern(
+            AtFactPattern("$with_what", "$where")
+        )
         state_at_target_inventory = StateWrapperPattern(
             AtFactPattern("$with_what", self.character.key)
         )
