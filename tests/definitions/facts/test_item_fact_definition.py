@@ -66,16 +66,14 @@ class TestItemFactDefinition(unittest.TestCase):
         result_examine_trigger = metta.run(f"!{item_examine_trigger.to_metta()}")
         self.assertEqual(unwrap_first_match(result_examine_trigger).text, text_examine)
 
-        result_enter_text = metta.run(
-            f"!(match &self (ItemEnterText {key} $text) $text)"
-        )
+        result_enter_text = metta.run(f"!(match &self (EnterText {key} $text) $text)")
         self.assertEqual(unwrap_first_match(result_enter_text), text_enter)
 
         result_look_text = metta.run(f"!(match &self (ItemLookText {key} $text) $text)")
         self.assertEqual(unwrap_first_match(result_look_text), text_look)
 
         result_enter_priority = metta.run(
-            f"!(match &self (ItemEnterPriority {key} $priority) $priority)"
+            f"!(match &self (EnterPriority {key} $priority) $priority)"
         )
         self.assertEqual(unwrap_first_match(result_enter_priority), enter_priority)
 

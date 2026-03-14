@@ -34,6 +34,24 @@ class TestCharacterFactDefinition(unittest.TestCase):
         )
         self.assertEqual(result_no_match, [[]])
 
+    def test_includes_enter_text_when_provided(self):
+        metta = get_test_metta()
+
+        metta.run(
+            CharacterFactDefinition(
+                "bear",
+                "Bear",
+                text_enter="A bear is here.",
+                enter_priority=30,
+            ).to_metta()
+        )
+
+        result_text = metta.run('!(match &self (EnterText bear $text) $text)')
+        self.assertEqual(unwrap_first_match(result_text), "A bear is here.")
+
+        result_priority = metta.run("!(match &self (EnterPriority bear $priority) $priority)")
+        self.assertEqual(unwrap_first_match(result_priority), 30)
+
 
 if __name__ == "__main__":
     unittest.main()

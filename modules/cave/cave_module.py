@@ -1,3 +1,4 @@
+from core.definitions.facts.character_fact_definition import CharacterFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_block_fact_definition import RouteBlockFactDefinition
@@ -27,6 +28,11 @@ class CaveModule(Module):
         self.cave_location = LocationFactDefinition(
             key="cave", text_move_to="You are in the cave."
         )
+        self.bear = CharacterFactDefinition(
+            key="bear",
+            name="Bear",
+            text_enter="A massive bear looms in the darkness, ready to tear you apart.",
+        )
         self.boulder = ItemFactDefinition(
             key="huge_rock",
             name="Huge rock",
@@ -47,7 +53,11 @@ class CaveModule(Module):
             )
         )
         world.add_definition(self.cave_location)
+        world.add_definition(self.bear)
         world.add_definition(self.boulder)
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern(self.bear.key, self.cave_location.key))
+        )
         world.add_definition(
             StateWrapperDefinition(
                 AtFactPattern(self.boulder.key, self.cave_entrance_location.key)

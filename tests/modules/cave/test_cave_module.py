@@ -7,9 +7,9 @@ from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefin
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
+from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 from core.patterns.facts.location_fact_pattern import LocationFactPattern
 from core.patterns.facts.route_block_fact_pattern import RouteBlockFactPattern
-from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 from core.world import World
 from modules.cave.cave_module import CaveModule
 from modules.cave.functions.stay_still_function_definition import (
@@ -38,6 +38,24 @@ class TestCaveModule(unittest.TestCase):
             f"!(match &self {location_pattern.to_metta()} {location_pattern.to_metta()})"
         )
         self.assertEqual(unwrap_first_match(location_result), location_pattern.to_metta())
+
+        bear_pattern = CharacterFactPattern("bear", "Bear")
+        bear_result = metta.run(
+            f"!(match &self {bear_pattern.to_metta()} {bear_pattern.to_metta()})"
+        )
+        self.assertEqual(unwrap_first_match(bear_result), bear_pattern.to_metta())
+
+        bear_enter_text_result = metta.run("!(match &self (EnterText bear $text) $text)")
+        self.assertEqual(
+            unwrap_first_match(bear_enter_text_result),
+            "A massive bear looms in the darkness, ready to tear you apart.",
+        )
+
+        bear_state = StateWrapperPattern(AtFactPattern("bear", "cave"))
+        bear_state_result = metta.run(
+            f"!(match &self {bear_state.to_metta()} {bear_state.to_metta()})"
+        )
+        self.assertEqual(unwrap_first_match(bear_state_result), bear_state.to_metta())
 
         boulder_state = StateWrapperPattern(AtFactPattern("huge_rock", "path_1"))
         boulder_result = metta.run(

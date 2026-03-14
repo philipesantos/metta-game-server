@@ -40,12 +40,16 @@ from core.definitions.functions.trigger_function_definition import (
 from core.definitions.functions.use_function_definition import UseFunctionDefinition
 from core.definitions.side_effects.on_drop_update_at import OnDropUpdateAt
 from core.definitions.side_effects.on_event_print import OnEventPrint
-from core.definitions.side_effects.on_move_show_items import OnMoveShowItems
+from core.definitions.side_effects.on_move_show_enter_text import (
+    OnMoveShowEnterText,
+)
 from core.definitions.side_effects.on_move_update_at import OnMoveUpdateAt
 from core.definitions.side_effects.on_move_update_tick import OnMoveUpdateTick
 from core.definitions.side_effects.on_pickup_update_at import OnPickUpUpdateAt
 from core.definitions.side_effects.on_look_in_show_items import OnLookInShowItems
-from core.definitions.side_effects.on_startup_show_items import OnStartupShowItems
+from core.definitions.side_effects.on_startup_show_enter_text import (
+    OnStartupShowEnterText,
+)
 from core.definitions.side_effects.on_use_do_nothing import OnUseDoNothing
 from core.definitions.side_effects.on_use_combine_item import OnUseCombineItem
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
@@ -123,7 +127,7 @@ def build_world() -> World:
             [
                 OnMoveUpdateAt(character_player.to_pattern()),
                 OnMoveUpdateTick(),
-                OnMoveShowItems(),
+                OnMoveShowEnterText(),
             ],
         )
     )
@@ -156,7 +160,7 @@ def build_world() -> World:
             StartupEventPattern(),
             [
                 OnEventPrint("You awaken in a glade."),
-                OnStartupShowItems(character_player.to_pattern()),
+                OnStartupShowEnterText(character_player.to_pattern()),
             ],
         )
     )

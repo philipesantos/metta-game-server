@@ -1,11 +1,14 @@
 import unittest
 
+from core.definitions.facts.character_fact_definition import CharacterFactDefinition
 from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.functions.trigger_function_definition import (
     TriggerFunctionDefinition,
 )
-from core.definitions.side_effects.on_startup_show_items import OnStartupShowItems
+from core.definitions.side_effects.on_startup_show_enter_text import (
+    OnStartupShowEnterText,
+)
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
 from core.patterns.events.startup_event_pattern import StartupEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
@@ -16,8 +19,8 @@ from tests.utils.utils import unwrap_first_match
 from utils.response import format_metta_output
 
 
-class TestOnStartupShowItems(unittest.TestCase):
-    def test_returns_items_when_present(self):
+class TestOnStartupShowEnterText(unittest.TestCase):
+    def test_returns_item_enter_text_when_present(self):
         metta = get_test_metta()
 
         character = CharacterFactPattern("player", "John")
@@ -48,7 +51,7 @@ class TestOnStartupShowItems(unittest.TestCase):
         )
         metta.run(
             TriggerFunctionDefinition(
-                StartupEventPattern(), [OnStartupShowItems(character)]
+                StartupEventPattern(), [OnStartupShowEnterText(character)]
             ).to_metta()
         )
 
@@ -59,7 +62,7 @@ class TestOnStartupShowItems(unittest.TestCase):
         self.assertIn("A silver coin glints in the grass.", result_text)
         self.assertNotIn("hollow_tree_trunk", result_text)
 
-    def test_returns_empty_when_no_items(self):
+    def test_returns_empty_when_no_entities_with_enter_text(self):
         metta = get_test_metta()
 
         character = CharacterFactPattern("player", "John")
@@ -69,7 +72,7 @@ class TestOnStartupShowItems(unittest.TestCase):
         )
         metta.run(
             TriggerFunctionDefinition(
-                StartupEventPattern(), [OnStartupShowItems(character)]
+                StartupEventPattern(), [OnStartupShowEnterText(character)]
             ).to_metta()
         )
 
@@ -78,6 +81,34 @@ class TestOnStartupShowItems(unittest.TestCase):
 
         if result != [[]]:
             self.assertEqual(unwrap_first_match(result), "()")
+
+    def test_returns_character_enter_text_when_present(self):
+        metta = get_test_metta()
+
+        character = CharacterFactPattern("player", "John")
+
+        metta.run(
+            CharacterFactDefinition(
+                "bear",
+                "Bear",
+                text_enter="A bear is already here.",
+            ).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
+        )
+        metta.run(StateWrapperDefinition(AtFactPattern("bear", "glade")).to_metta())
+        metta.run(
+            TriggerFunctionDefinition(
+                StartupEventPattern(), [OnStartupShowEnterText(character)]
+            ).to_metta()
+        )
+
+        trigger = TriggerFunctionPattern(StartupEventPattern())
+        result = metta.run(f"!{trigger.to_metta()}")
+        result_text = format_metta_output(result)
+
+        self.assertIn("A bear is already here.", result_text)
 
 
 if __name__ == "__main__":

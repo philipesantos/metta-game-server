@@ -5,17 +5,17 @@ from core.patterns.facts.response_fact_pattern import ResponseFactPattern
 from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 
 
-class OnMoveShowItems(SideEffectDefinition):
+class OnMoveShowEnterText(SideEffectDefinition):
     def to_metta(self, event: MoveEventPattern) -> str:
         state_at_what = StateWrapperPattern(AtFactPattern("$what", event.to_location))
         # fmt: off
         return (
             f"(collapse (match &self {state_at_what.to_metta()}\n"
-            f"    (match &self (ItemEnterText $what $text)\n"
-            f"        (let $priority_result (match &self (ItemEnterPriority $what $priority) $priority)\n"
+            f"    (match &self (EnterText $what $text)\n"
+            f"        (let $priority_result (match &self (EnterPriority $what $priority) $priority)\n"
             f"            (case $priority_result (\n"
             f"                (Empty {ResponseFactPattern(20, '$text').to_metta()})\n"
-            f"                ($priority {ResponseFactPattern("$priority", "$text").to_metta()})\n"
+            f"                ($priority {ResponseFactPattern('$priority', '$text').to_metta()})\n"
             f"            ))\n"
             f"        )\n"
             f"    )\n"

@@ -13,9 +13,9 @@ from utils.type import Type
 
 class ItemFactDefinition(FactDefinition):
     NAME_FACT = "ItemName"
-    ENTER_TEXT_FACT = "ItemEnterText"
+    ENTER_TEXT_FACT = "EnterText"
     LOOK_TEXT_FACT = "ItemLookText"
-    ENTER_PRIORITY_FACT = "ItemEnterPriority"
+    ENTER_PRIORITY_FACT = "EnterPriority"
     LOOK_PRIORITY_FACT = "ItemLookPriority"
 
     def __init__(
