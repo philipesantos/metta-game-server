@@ -5,15 +5,22 @@ from core.definitions.functions.trigger_function_definition import (
 )
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
+from core.patterns.events.examine_event_pattern import ExamineEventPattern
+from core.patterns.events.move_event_pattern import MoveEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
-from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 from core.patterns.facts.location_fact_pattern import LocationFactPattern
 from core.patterns.facts.route_block_fact_pattern import RouteBlockFactPattern
+from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
+from core.patterns.wrappers.stale_wrapper_pattern import StaleWrapperPattern
+from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 from core.world import World
 from modules.cave.cave_module import CaveModule
 from modules.cave.functions.stay_still_function_definition import (
     StayStillFunctionDefinition,
+)
+from modules.cave.patterns.bear_threat_pending_fact_pattern import (
+    BearThreatPendingFactPattern,
 )
 from modules.cave.patterns.stay_still_event_pattern import StayStillEventPattern
 from modules.cave.patterns.stay_still_function_pattern import (
@@ -21,6 +28,7 @@ from modules.cave.patterns.stay_still_function_pattern import (
 )
 from tests.utils.metta import get_test_metta
 from tests.utils.utils import unwrap_first_match
+from utils.response import format_metta_output
 
 
 class TestCaveModule(unittest.TestCase):
@@ -118,6 +126,118 @@ class TestCaveModule(unittest.TestCase):
         result = metta.run(f"!{StayStillFunctionPattern().to_metta()}")
 
         self.assertEqual(unwrap_first_match(result).text, "You stand still.")
+        self.assertNotIn(
+            "You remain perfectly still until the bear goes away. You are safe for now.",
+            format_metta_output(result),
+        )
+
+    def test_entering_cave_arms_bear_threat_for_next_tick(self):
+        metta = get_test_metta()
+
+        world = World()
+        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        character = CharacterFactPattern("player", "John")
+
+        CaveModule(cave_entrance, character).apply(world)
+        metta.run(world.to_metta())
+
+        trigger = TriggerFunctionPattern(MoveEventPattern("path_1", "cave"))
+        metta.run(f"!{trigger.to_metta()}")
+
+        pending_state = StateWrapperPattern(BearThreatPendingFactPattern("player"))
+        pending_result = metta.run(
+            f"!(match &self {pending_state.to_metta()} {pending_state.to_metta()})"
+        )
+        self.assertEqual(unwrap_first_match(pending_result), pending_state.to_metta())
+
+    def test_stay_still_clears_bear_threat_and_marks_tick_stale(self):
+        metta = get_test_metta()
+
+        world = World()
+        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        character = CharacterFactPattern("player", "John")
+
+        CaveModule(cave_entrance, character).apply(world)
+        metta.run(world.to_metta())
+        metta.run(
+            StateWrapperDefinition(BearThreatPendingFactPattern("player")).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "cave")).to_metta()
+        )
+
+        result = metta.run(f"!{StayStillFunctionPattern().to_metta()}")
+
+        self.assertIn(
+            "You remain perfectly still until the bear goes away. You are safe for now.",
+            format_metta_output(result),
+        )
+        self.assertNotIn("You stand still.", format_metta_output(result))
+
+        pending_state = StateWrapperPattern(BearThreatPendingFactPattern("player"))
+        pending_result = metta.run(
+            f"!(match &self {pending_state.to_metta()} {pending_state.to_metta()})"
+        )
+        self.assertEqual(pending_result, [[]])
+
+        bear_state = StateWrapperPattern(AtFactPattern("bear", "cave"))
+        bear_result = metta.run(
+            f"!(match &self {bear_state.to_metta()} {bear_state.to_metta()})"
+        )
+        self.assertEqual(bear_result, [[]])
+
+        stale_tick = StaleWrapperPattern("Tick")
+        stale_result = metta.run(f"!(match &self {stale_tick.to_metta()} True)")
+        self.assertEqual(unwrap_first_match(stale_result), "True")
+
+    def test_moving_without_staying_still_prints_death_message(self):
+        metta = get_test_metta()
+
+        world = World()
+        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        character = CharacterFactPattern("player", "John")
+
+        CaveModule(cave_entrance, character).apply(world)
+        metta.run(world.to_metta())
+        metta.run(
+            StateWrapperDefinition(BearThreatPendingFactPattern("player")).to_metta()
+        )
+
+        trigger = TriggerFunctionPattern(MoveEventPattern("cave", "glade"))
+        result = metta.run(f"!{trigger.to_metta()}")
+
+        self.assertIn(
+            "The bear lunges before you can react and tears you apart. You died.",
+            format_metta_output(result),
+        )
+
+        pending_state = StateWrapperPattern(BearThreatPendingFactPattern("player"))
+        pending_result = metta.run(
+            f"!(match &self {pending_state.to_metta()} {pending_state.to_metta()})"
+        )
+        self.assertEqual(pending_result, [[]])
+
+    def test_examine_does_not_consume_bear_threat(self):
+        metta = get_test_metta()
+
+        world = World()
+        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        character = CharacterFactPattern("player", "John")
+
+        CaveModule(cave_entrance, character).apply(world)
+        metta.run(world.to_metta())
+        metta.run(
+            StateWrapperDefinition(BearThreatPendingFactPattern("player")).to_metta()
+        )
+
+        trigger = TriggerFunctionPattern(ExamineEventPattern("bear"))
+        metta.run(f"!{trigger.to_metta()}")
+
+        pending_state = StateWrapperPattern(BearThreatPendingFactPattern("player"))
+        pending_result = metta.run(
+            f"!(match &self {pending_state.to_metta()} {pending_state.to_metta()})"
+        )
+        self.assertEqual(unwrap_first_match(pending_result), pending_state.to_metta())
 
 
 if __name__ == "__main__":

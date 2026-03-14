@@ -1,12 +1,36 @@
 from hyperon import MeTTa
 from core.nlp import EmbeddingIndex, build_command_catalog
 from core.patterns.events.startup_event_pattern import StartupEventPattern
+from core.patterns.facts.game_over_fact_pattern import GameOverFactPattern
 from core.patterns.functions.synchronize_tick_function_pattern import (
     SynchronizeTickFunctionPattern,
 )
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
+from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
 from core.world_builder import build_world
 from utils.response import format_metta_output
+
+
+def _unwrap_atom(atom) -> str:
+    if hasattr(atom, "get_object"):
+        obj = atom.get_object()
+        if hasattr(obj, "value"):
+            return str(obj.value)
+        if hasattr(obj, "content"):
+            return str(obj.content)
+        return str(obj)
+    if hasattr(atom, "get_name"):
+        return atom.get_name()
+    return str(atom)
+
+
+def _game_over_message(metta: MeTTa) -> str | None:
+    result = metta.run(
+        f"!(match &self {StateWrapperPattern(GameOverFactPattern('$reason')).to_metta()} $reason)"
+    )
+    if not result or not result[0]:
+        return None
+    return _unwrap_atom(result[0][0])
 
 
 def main():
@@ -42,6 +66,11 @@ def main():
             break
 
         stripped = user_query.strip()
+        game_over_message = _game_over_message(metta)
+        if game_over_message is not None:
+            print(game_over_message)
+            continue
+
         if stripped.startswith("!") or stripped.startswith("("):
             metta_query = stripped
         else:
@@ -55,6 +84,10 @@ def main():
             metta_query = f"!{match.entry.metta}"
 
         result_output = metta.run(metta_query)
+        game_over_message = _game_over_message(metta)
+        if game_over_message is not None:
+            print(game_over_message)
+            continue
         print(format_metta_output(result_output))
         print(metta.run(f"!{SynchronizeTickFunctionPattern().to_metta()}"))
 

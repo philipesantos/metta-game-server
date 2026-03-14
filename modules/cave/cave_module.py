@@ -5,14 +5,26 @@ from core.definitions.facts.route_block_fact_definition import RouteBlockFactDef
 from core.definitions.functions.trigger_function_definition import (
     TriggerFunctionDefinition,
 )
-from core.definitions.side_effects.on_event_print import OnEventPrint
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
+from core.patterns.events.move_event_pattern import MoveEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
 from core.world import World
 from modules.module import Module
 from modules.cave.functions.stay_still_function_definition import (
     StayStillFunctionDefinition,
+)
+from modules.cave.side_effects.cave_module_on_bear_encounter_arm_threat import (
+    CaveModuleOnBearEncounterArmThreat,
+)
+from modules.cave.side_effects.cave_module_on_bear_threat_death import (
+    CaveModuleOnBearThreatDeath,
+)
+from modules.cave.side_effects.cave_module_on_bear_threat_resolve_stay_still import (
+    CaveModuleOnBearThreatResolveStayStill,
+)
+from modules.cave.side_effects.cave_module_on_stay_still_update_tick import (
+    CaveModuleOnStayStillUpdateTick,
 )
 from modules.cave.patterns.stay_still_event_pattern import StayStillEventPattern
 
@@ -49,7 +61,28 @@ class CaveModule(Module):
         world.add_definition(
             TriggerFunctionDefinition(
                 StayStillEventPattern("$where"),
-                [OnEventPrint("You stand still.")],
+                [
+                    CaveModuleOnBearThreatResolveStayStill(
+                        self.character, self.bear.key, self.cave_location.key
+                    ),
+                    CaveModuleOnStayStillUpdateTick(),
+                ],
+            )
+        )
+        world.add_definition(
+            TriggerFunctionDefinition(
+                MoveEventPattern("$from", self.cave_location.key),
+                [
+                    CaveModuleOnBearEncounterArmThreat(
+                        self.character, self.bear.key, self.cave_location.key
+                    )
+                ],
+            )
+        )
+        world.add_definition(
+            TriggerFunctionDefinition(
+                MoveEventPattern("$from", "$to"),
+                [CaveModuleOnBearThreatDeath(self.character)],
             )
         )
         world.add_definition(self.cave_location)
