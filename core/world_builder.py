@@ -240,21 +240,6 @@ def build_world() -> World:
     )
     world.add_definition(iron_box)
 
-    unconscious_person = ContainerFactDefinition(
-        key="unconscious_person",
-        name="Unconscious person",
-        text_enter="An unconscious person lies here, barely breathing.",
-        text_examine="You examine the unconscious person. They seem weak but stable.",
-        text_look="You check the unconscious person. Their breathing is shallow but steady.",
-        text_contents="An unconscious person lies here, barely breathing.",
-    )
-    world.add_definition(unconscious_person)
-    world.add_definition(
-        StateWrapperDefinition(
-            AtFactPattern(unconscious_person.key, location_glade.key)
-        )
-    )
-
     container_hollow_tree_trunk = ContainerFactDefinition(
         key="tree_trunk",
         name="Hollow tree trunk",
@@ -425,9 +410,7 @@ def build_world() -> World:
         )
     )
 
-    CompassModule(
-        character_player.to_pattern(), location_glade, unconscious_person.key
-    ).apply(world)
+    CompassModule(character_player.to_pattern(), location_glade).apply(world)
     CabinModule(
         location_path_5,
         seashell,

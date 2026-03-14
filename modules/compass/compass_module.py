@@ -1,3 +1,4 @@
+from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_block_fact_definition import RouteBlockFactDefinition
@@ -31,26 +32,37 @@ class CompassModule(Module):
         self,
         character: CharacterFactPattern,
         initial_location: LocationFactDefinition,
-        compass_where: str | None = None,
+        satchel_where: str | None = None,
     ):
         self.character: CharacterFactPattern = character
         self.initial_location: LocationFactDefinition = initial_location
-        self.compass_where: str = compass_where or initial_location
+        self.satchel_where: str = satchel_where or initial_location.key
 
     def apply(self, world: World) -> None:
+        satchel = ContainerFactDefinition(
+            key="satchel",
+            name="Traveler's satchel",
+            text_enter="A traveler's satchel rests in the grass.",
+            text_examine="A weathered traveler's satchel with a frayed strap and a half-open flap.",
+            text_look="You open the satchel and look inside.",
+            text_contents="A traveler's satchel rests in the grass.",
+        )
         item_compass = ItemFactDefinition(
             key="compass",
             name="Compass",
             text_pickup="You got the compass",
             text_drop="You dropped the compass",
             text_examine="An old compass etched with cardinal marks.",
-            text_enter="An old compass lies here, its needle trembling.",
             text_look="Inside, an old compass rests against the lining.",
         )
+        world.add_definition(satchel)
         world.add_definition(item_compass)
         world.add_definition(CompassDirectionsFunctionDefinition())
         world.add_definition(
-            StateWrapperDefinition(AtFactPattern(item_compass.key, self.compass_where))
+            StateWrapperDefinition(AtFactPattern(satchel.key, self.satchel_where))
+        )
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern(item_compass.key, satchel.key))
         )
         world.add_definition(
             TriggerFunctionDefinition(

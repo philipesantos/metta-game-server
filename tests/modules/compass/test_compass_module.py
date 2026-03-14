@@ -1,7 +1,11 @@
 import unittest
 
+from core.definitions.facts.container_fact_definition import ContainerFactDefinition
+from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
+from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
+from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
 from core.patterns.facts.route_block_fact_pattern import RouteBlockFactPattern
 from core.world import World
@@ -11,6 +15,50 @@ from tests.utils.utils import unwrap_first_match
 
 
 class TestCompassModule(unittest.TestCase):
+    def test_adds_satchel_in_glade_with_compass_inside(self):
+        world = World()
+
+        CompassModule(
+            CharacterFactPattern("player", "John"),
+            LocationFactDefinition("glade", "A quiet glade."),
+        ).apply(world)
+
+        satchels = [
+            definition
+            for definition in world.definitions
+            if isinstance(definition, ContainerFactDefinition)
+            and definition.key == "satchel"
+        ]
+        self.assertEqual(len(satchels), 1)
+
+        compasses = [
+            definition
+            for definition in world.definitions
+            if isinstance(definition, ItemFactDefinition)
+            and definition.key == "compass"
+        ]
+        self.assertEqual(len(compasses), 1)
+
+        satchel_state_defs = [
+            definition
+            for definition in world.definitions
+            if isinstance(definition, StateWrapperDefinition)
+            and isinstance(definition.pattern, AtFactPattern)
+            and definition.pattern.what == "satchel"
+            and definition.pattern.where == "glade"
+        ]
+        self.assertEqual(len(satchel_state_defs), 1)
+
+        compass_state_defs = [
+            definition
+            for definition in world.definitions
+            if isinstance(definition, StateWrapperDefinition)
+            and isinstance(definition.pattern, AtFactPattern)
+            and definition.pattern.what == "compass"
+            and definition.pattern.where == "satchel"
+        ]
+        self.assertEqual(len(compass_state_defs), 1)
+
     def test_adds_route_blocks_from_compass_location(self):
         metta = get_test_metta()
 
