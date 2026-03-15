@@ -54,6 +54,13 @@ class TestCommandCatalog(unittest.TestCase):
                 text_contents="A wooden chest sits here.",
             )
         )
+        world.add_definition(
+            ContainerFactDefinition(
+                "satchel",
+                text_contents="A satchel rests here.",
+                can_pickup=True,
+            )
+        )
         world.add_definition(InventoryFunctionPattern(character))
         world.add_definition(MoveToFunctionDefinition(character))
         world.add_definition(MoveTowardsFunctionDefinition(character))
@@ -71,6 +78,7 @@ class TestCommandCatalog(unittest.TestCase):
         world.add_definition(
             StateWrapperDefinition(AtFactPattern("wooden_chest", "glade"))
         )
+        world.add_definition(StateWrapperDefinition(AtFactPattern("satchel", "glade")))
 
         metta.run(world.to_metta())
         catalog = build_command_catalog(world, metta)
@@ -84,6 +92,11 @@ class TestCommandCatalog(unittest.TestCase):
         )
         self.assertEqual(utterance_to_metta.get("get compass"), "(pickup (compass))")
         self.assertEqual(utterance_to_metta.get("get oil"), "(pickup (oil))")
+        self.assertEqual(utterance_to_metta.get("get satchel"), "(pickup (satchel))")
+        self.assertEqual(
+            utterance_to_metta.get("pick satchel"), "(pickup (satchel))"
+        )
+        self.assertEqual(utterance_to_metta.get("drop satchel"), "(drop (satchel))")
         self.assertEqual(
             utterance_to_metta.get("go to camping site"), "(move-to (camping_site))"
         )

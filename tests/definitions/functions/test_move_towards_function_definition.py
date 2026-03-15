@@ -68,7 +68,8 @@ class TestMoveTowardsFunctionDefinition(unittest.TestCase):
         move_towards_west = MoveTowardsFunctionPattern(Direction.WEST)
         result_move_towards_west = metta.run(f"!{move_towards_west.to_metta()}")
         self.assertEqual(
-            unwrap_first_match(result_move_towards_west).text, "No way to go there"
+            unwrap_first_match(result_move_towards_west).text,
+            "You cannot go that way.",
         )
 
         move_towards_south = MoveTowardsFunctionPattern(Direction.SOUTH)

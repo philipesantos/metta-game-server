@@ -28,7 +28,7 @@ class MoveToFunctionDefinition(FunctionDefinition):
             f"        (\n"
             f"            (Empty (if {ExistsFunctionPattern(log_move_event_match).to_metta()}\n"
             f"                {TriggerFunctionPattern(move_event_trigger).to_metta()}\n"
-            f"                {ResponseFactPattern(100, '\"No way to go there\"').to_metta()}\n"
+            f"                {ResponseFactPattern(100, '\"You cannot reach that place from here.\"').to_metta()}\n"
             f"            ))\n"
             f"            ($reason {ResponseFactPattern(100, '$reason').to_metta()})\n"
             f"        ))\n"

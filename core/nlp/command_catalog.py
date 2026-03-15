@@ -60,6 +60,13 @@ def _resolve_items(metta, _world) -> list[SlotValue]:
     return _resolve_active_entities(metta, "Item")
 
 
+def _resolve_pickupables(metta, _world) -> list[SlotValue]:
+    active_keys = _active_keys(metta)
+    pickupable_keys = set(_query_values(metta, "(Pickupable $key)", "$key"))
+    keys = sorted(active_keys & pickupable_keys)
+    return [SlotValue(key=key, text=_humanize_key(key).lower()) for key in keys]
+
+
 def _resolve_examinables(metta, _world) -> list[SlotValue]:
     items = _resolve_items(metta, _world)
     containers = _resolve_containers(metta, _world)
@@ -90,6 +97,7 @@ def _resolve_directions(_metta, _world) -> list[SlotValue]:
 
 DEFAULT_SLOT_RESOLVERS = {
     "item": _resolve_items,
+    "pickupable": _resolve_pickupables,
     "examinable": _resolve_examinables,
     "location": _resolve_locations,
     "container": _resolve_containers,

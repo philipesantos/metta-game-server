@@ -199,7 +199,9 @@ def build_world() -> World:
         TriggerFunctionDefinition(
             StartupEventPattern(),
             [
-                OnEventPrint("You awaken in a glade."),
+                OnEventPrint(
+                    "You awaken beneath ancient trees, alone in a quiet glade."
+                ),
                 OnStartupShowEnterText(character_player.to_pattern()),
             ],
         )
@@ -309,8 +311,14 @@ def build_world() -> World:
         name="Disturbed soil",
         text_pickup="",
         text_drop="",
-        text_examine="The soil looks recently turned. It could hide something underneath.",
-        text_enter="A patch of disturbed soil stands out beside the trail.",
+        text_examine=(
+            "The earth has been turned recently, leaving the soil loose and uneven "
+            "against the surrounding ground."
+        ),
+        text_enter=(
+            "A patch of disturbed soil stands out here. The ground looks recently "
+            "turned."
+        ),
         text_look="The disturbed soil is loose and shallow.",
         can_pickup=False,
     )
@@ -326,8 +334,13 @@ def build_world() -> World:
         name="Iron box",
         text_pickup="You pick up the iron box.",
         text_drop="You drop the iron box.",
-        text_examine="A small iron box, worn by time but still tightly sealed.",
-        text_enter="A small iron box lies half-buried in fresh soil.",
+        text_examine=(
+            "The iron box is small and heavy in the hand, its rusted seams still "
+            "clamped tightly shut."
+        ),
+        text_enter=(
+            "Half-buried in the loose soil is a small iron box."
+        ),
         text_look="Inside, a small iron box is wedged in the dirt.",
     )
     world.add_definition(iron_box)
@@ -335,8 +348,11 @@ def build_world() -> World:
     container_hollow_tree_trunk = ContainerFactDefinition(
         key="tree_trunk",
         name="Hollow tree trunk",
-        text_enter="An old tree trunk",
-        text_examine="The tree trunk looks hollow",
+        text_enter="An old tree trunk stands here, and it looks hollow.",
+        text_examine=(
+            "The trunk is split and weathered, and the dark hollow inside is just "
+            "wide enough to hide something."
+        ),
         text_look="You put your hand inside the tree trunk.",
         text_contents="An old hollow tree trunk stands nearby.",
     )
@@ -350,8 +366,14 @@ def build_world() -> World:
     container_rock_formation = ContainerFactDefinition(
         key="rock_formation",
         name="Suspicious rock formation",
-        text_enter="A suspicious rock formation",
-        text_examine="The rock formation doesn’t look natural. There seems to be a gap between the rocks.",
+        text_enter=(
+            "A strange rock formation rises here. A narrow gap runs between the "
+            "stones."
+        ),
+        text_examine=(
+            "The stones look too neatly arranged to be natural, and a narrow gap "
+            "cuts between them."
+        ),
         text_look="You look inside the gap between the rocks.",
         text_contents="A suspicious rock formation has a narrow gap between the rocks.",
     )
@@ -365,8 +387,11 @@ def build_world() -> World:
     big_chest = ContainerFactDefinition(
         key="chest",
         name="Big chest",
-        text_enter="There is a chest near a tent",
-        text_examine="It is a big chest, it looks open.",
+        text_enter="Beside the old tent sits a large chest.",
+        text_examine=(
+            "The chest is broad and heavy, its lid sitting open as if someone left "
+            "in a hurry."
+        ),
         text_look="You look inside the chest.",
         text_contents="A big chest sits near the tent.",
     )
@@ -378,8 +403,11 @@ def build_world() -> World:
     shovel = ItemFactDefinition(
         key="shovel",
         name="Shovel",
-        text_enter="You see an old shovel.",
-        text_examine="An old shovel, but it still looks sturdy enough to do the job.",
+        text_enter="An old shovel leans here within easy reach.",
+        text_examine=(
+            "Its wood is worn smooth with age, but the metal blade still looks "
+            "strong enough to dig."
+        ),
         text_look="Inside, an old shovel leans against the chest wall.",
         text_drop="You drop the old shovel.",
         text_pickup="You pick up the old shovel.",
@@ -407,8 +435,11 @@ def build_world() -> World:
     lantern = ItemFactDefinition(
         key="lantern",
         name="Lantern",
-        text_enter="You see a weathered lantern.",
-        text_examine="A weathered lantern. The oil inside has long since dried.",
+        text_enter="A weathered lantern rests here, dulled by dust and age.",
+        text_examine=(
+            "The lantern's glass is clouded and the reservoir is dry, but the frame "
+            "itself is still intact."
+        ),
         text_look="Inside, a weathered lantern lies in the chest.",
         text_drop="You drop the lantern.",
         text_pickup="You pick up the lantern.",
@@ -423,8 +454,11 @@ def build_world() -> World:
         name="Lantern",
         text_pickup="You pick up the lantern.",
         text_drop="You drop the lantern.",
-        text_examine="A weathered lantern filled with fresh oil. It is ready to be lit.",
-        text_enter="You see a lantern filled with fresh oil.",
+        text_examine=(
+            "Fresh oil sloshes inside the weathered lantern, ready to feed a steady "
+            "flame."
+        ),
+        text_enter="A lantern filled with fresh oil rests here.",
         text_look="Inside, a lantern filled with fresh oil rests in the chest.",
     )
     world.add_definition(functioning_lantern)
@@ -432,8 +466,11 @@ def build_world() -> World:
     abandoned_well = ContainerFactDefinition(
         key="well",
         name="Abandoned well",
-        text_enter="You see a abandoned well.",
-        text_examine="A worn bucket sits inside, but the well seems dry.",
+        text_enter="An abandoned well stands here, lined with worn stone.",
+        text_examine=(
+            "The stone lining is cracked and dry, and the bucket hanging within "
+            "suggests the water is long gone."
+        ),
         text_look="You look inside the well.",
         text_contents="An abandoned well stands here.",
     )
@@ -448,7 +485,10 @@ def build_world() -> World:
         key="bucket",
         name="Bucket",
         text_enter="A worn bucket rests here.",
-        text_examine="An old wooden bucket with a frayed rope handle.",
+        text_examine=(
+            "The bucket is made of old wood bound with iron hoops, its rope handle "
+            "frayed with age."
+        ),
         text_look="You peer into the bucket.",
         text_contents="A worn bucket hangs inside the well.",
     )
@@ -460,8 +500,11 @@ def build_world() -> World:
     seashell = ContainerFactDefinition(
         key="seashell",
         name="Seashell",
-        text_enter="A small seashell rests in the sand.",
-        text_examine="Its surface is smooth and pale, shaped by the tide. The shell is slightly open, just enough to slip something inside.",
+        text_enter="Half-set in the sand is a small seashell.",
+        text_examine=(
+            "Its pale surface has been polished smooth by the tide, and the shell "
+            "stands slightly open."
+        ),
         text_look="You gently pry the shell open and look inside.",
         text_contents="A small seashell rests in the sand.",
     )
@@ -473,8 +516,14 @@ def build_world() -> World:
     waterfall = ContainerFactDefinition(
         key="waterfall",
         name="Waterfall",
-        text_enter="A narrow waterfall spills down the rocks beside the beach.",
-        text_examine="Cold water cascades over the rock face and disappears into a shallow pool.",
+        text_enter=(
+            "A narrow waterfall spills down the rocks here beside the "
+            "beach."
+        ),
+        text_examine=(
+            "Cold water sheets over the dark rock and disappears into a shallow pool "
+            "at the base."
+        ),
         text_look="You peer through the falling water.",
         text_contents="A narrow waterfall spills down the rocks beside the beach.",
     )
@@ -486,8 +535,11 @@ def build_world() -> World:
     lantern_oil = ItemFactDefinition(
         key="oil",
         name="Lantern oil",
-        text_enter="You see a small metal flask filled with oil.",
-        text_examine="A sealed flask containing clear lamp oil. It smells sharp and flammable.",
+        text_enter="A small metal flask of lantern oil has been left here.",
+        text_examine=(
+            "The flask is sealed tight and filled with clear lamp oil that smells "
+            "sharp and flammable."
+        ),
         text_look="A small flask of lantern oil rests here.",
         text_drop="You set the lantern oil down.",
         text_pickup="You pick up the lantern oil.",

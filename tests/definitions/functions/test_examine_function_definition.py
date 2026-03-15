@@ -57,7 +57,10 @@ class TestExamineFunctionDefinition(unittest.TestCase):
         examine_action = ExamineFunctionPattern("compass")
         result = metta.run(f"!{examine_action.to_metta()}")
 
-        self.assertEqual(unwrap_first_match(result).text, "There is nothing to examine")
+        self.assertEqual(
+            unwrap_first_match(result).text,
+            "You do not see anything like that here.",
+        )
 
     def test_triggers_examine_event_when_item_is_in_inventory(self):
         metta = get_test_metta()

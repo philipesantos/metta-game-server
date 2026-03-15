@@ -202,6 +202,36 @@ class TestEmbeddingIndex(unittest.TestCase):
         self.assertEqual(fake_model.calls[0], ["pickup compass"])
         self.assertEqual(fake_model.calls[1], ["pickup lantern"])
 
+    def test_prefers_unique_exact_match_before_embeddings(self):
+        entries = [
+            CommandEntry(
+                utterance="get satchel",
+                intent="pickup",
+                metta="(pickup (satchel))",
+                slots={"item": "satchel"},
+            ),
+            CommandEntry(
+                utterance="examine satchel",
+                intent="examine",
+                metta="(examine (satchel))",
+                slots={"examinable": "satchel"},
+            ),
+        ]
+        vectors = {
+            "get satchel": np.array([0.0, 1.0], dtype=np.float32),
+            "examine satchel": np.array([1.0, 0.0], dtype=np.float32),
+        }
+
+        with patch(
+            "core.nlp.embedding_index.SentenceTransformer",
+            return_value=_FakeSentenceTransformer(vectors),
+        ):
+            index = EmbeddingIndex(entries, model_name="fake")
+            match = index.match("get satchel")
+
+        self.assertIsNotNone(match)
+        self.assertEqual(match.entry.utterance, "get satchel")
+
 
 if __name__ == "__main__":
     unittest.main()

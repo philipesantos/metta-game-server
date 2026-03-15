@@ -57,7 +57,13 @@ class PickUpFunctionDefinition(FunctionDefinition):
     def nl_spec(self):
         return NLSpec(
             intent="pickup",
-            templates=("pickup {item}", "pick up {item}", "grab {item}", "get {item}"),
+            templates=(
+                "pickup {item}",
+                "pick up {item}",
+                "pick {item}",
+                "grab {item}",
+                "get {item}",
+            ),
             metta="(pickup ({item}))",
-            slots={"item": SlotSpec("item")},
+            slots={"item": SlotSpec("pickupable")},
         )

@@ -5,6 +5,7 @@ from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefin
 from core.patterns.functions.examine_function_pattern import ExamineFunctionPattern
 from core.patterns.events.look_in_event_pattern import LookInEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
+from core.patterns.functions.pickup_function_pattern import PickUpFunctionPattern
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
 from core.patterns.functions.use_function_pattern import UseFunctionPattern
 from core.patterns.wrappers.state_wrapper_pattern import StateWrapperPattern
@@ -67,6 +68,22 @@ class TestWorldBuilder(unittest.TestCase):
 
         self.assertEqual(output_lines.count("You peer into the bucket."), 1)
         self.assertGreaterEqual(len(output_lines), 1)
+
+    def test_satchel_can_be_picked_up(self):
+        metta = get_test_metta()
+        metta.run(build_world().to_metta())
+
+        result = metta.run(f"!{PickUpFunctionPattern('satchel').to_metta()}")
+        output_lines = format_metta_output(result).splitlines()
+        self.assertIn("You pick up the satchel.", output_lines)
+
+        satchel_state = StateWrapperPattern(AtFactPattern("satchel", "player"))
+        satchel_state_result = metta.run(
+            f"!(match &self {satchel_state.to_metta()} {satchel_state.to_metta()})"
+        )
+        self.assertEqual(
+            unwrap_first_match(satchel_state_result), satchel_state.to_metta()
+        )
 
     def test_look_in_beach_lists_waterfall_once(self):
         metta = get_test_metta()

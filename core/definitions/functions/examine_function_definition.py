@@ -31,7 +31,7 @@ class ExamineFunctionDefinition(FunctionDefinition):
             f"    (let $where (match &self {state_at_player.to_metta()} $where)\n"
             f"        (if (or {item_here_exists.to_metta()} {item_inventory_exists.to_metta()})\n"
             f"            {examine_trigger.to_metta()}\n"
-            f"            {ResponseFactPattern(100, '\"There is nothing to examine\"').to_metta()}\n"
+            f"            {ResponseFactPattern(100, '\"You do not see anything like that here.\"').to_metta()}\n"
             f"        )\n"
             f"    )\n"
             f")"

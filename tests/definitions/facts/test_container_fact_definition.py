@@ -2,13 +2,16 @@ import unittest
 
 from core.definitions.facts.container_fact_definition import ContainerFactDefinition
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
+from core.patterns.events.drop_event_pattern import DropEventPattern
 from core.patterns.events.examine_event_pattern import ExamineEventPattern
 from core.patterns.events.look_in_event_pattern import LookInEventPattern
 from core.patterns.events.move_event_pattern import MoveEventPattern
+from core.patterns.events.pickup_event_pattern import PickUpEventPattern
 from core.patterns.events.startup_event_pattern import StartupEventPattern
-from core.patterns.facts.container_fact_pattern import ContainerFactPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
+from core.patterns.facts.container_fact_pattern import ContainerFactPattern
 from core.patterns.facts.location_fact_pattern import LocationFactPattern
+from core.patterns.facts.pickupable_fact_pattern import PickupableFactPattern
 from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
 from tests.utils.metta import get_test_metta
 from tests.utils.utils import unwrap_first_match
@@ -83,6 +86,35 @@ class TestContainerFactDefinition(unittest.TestCase):
         no_match = LocationFactPattern("bottle")
         result_no_match = metta.run(f"!(match &self {no_match.to_metta()} True)")
         self.assertEqual(result_no_match, [[]])
+
+    def test_to_metta_pickupable_container(self):
+        metta = get_test_metta()
+
+        key = "satchel"
+        text_pickup = "You pick up the satchel."
+        text_drop = "You set the satchel down."
+        metta.run(
+            ContainerFactDefinition(
+                key,
+                text_pickup=text_pickup,
+                text_drop=text_drop,
+                can_pickup=True,
+            ).to_metta()
+        )
+
+        pickupable = PickupableFactPattern("$key")
+        result_pickupable = metta.run(
+            f"!(match &self {pickupable.to_metta()} $key)"
+        )
+        self.assertEqual(unwrap_first_match(result_pickupable), key)
+
+        pickup_trigger = TriggerFunctionPattern(PickUpEventPattern(key, "glade"))
+        result_pickup = metta.run(f"!{pickup_trigger.to_metta()}")
+        self.assertEqual(format_metta_output(result_pickup), text_pickup)
+
+        drop_trigger = TriggerFunctionPattern(DropEventPattern(key, "glade"))
+        result_drop = metta.run(f"!{drop_trigger.to_metta()}")
+        self.assertEqual(format_metta_output(result_drop), text_drop)
 
 
 if __name__ == "__main__":

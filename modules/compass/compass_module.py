@@ -42,17 +42,23 @@ class CompassModule(Module):
         satchel = ContainerFactDefinition(
             key="satchel",
             name="Traveler's satchel",
-            text_enter="A traveler's satchel rests in the grass.",
+            text_enter="A traveler's satchel rests here in the grass.",
             text_examine="A weathered traveler's satchel with a frayed strap and a half-open flap.",
             text_look="You open the satchel and look inside.",
             text_contents="A traveler's satchel rests in the grass.",
+            text_pickup="You pick up the satchel.",
+            text_drop="You set the satchel down.",
+            can_pickup=True,
         )
         item_compass = ItemFactDefinition(
             key="compass",
             name="Compass",
-            text_pickup="You got the compass",
-            text_drop="You dropped the compass",
-            text_examine="An old compass etched with cardinal marks.",
+            text_pickup="You pick up the compass.",
+            text_drop="You set the compass down.",
+            text_examine=(
+                "A weathered compass rests in your palm, its needle still twitching "
+                "toward north."
+            ),
             text_look="Inside, an old compass rests against the lining.",
         )
         world.add_definition(satchel)

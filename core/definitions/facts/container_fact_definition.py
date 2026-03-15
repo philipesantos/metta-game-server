@@ -3,6 +3,7 @@ from core.definitions.functions.trigger_function_definition import (
     TriggerFunctionDefinition,
 )
 from core.definitions.side_effects.on_event_print import OnEventPrint
+from core.patterns.events.drop_event_pattern import DropEventPattern
 from core.definitions.side_effects.on_move_show_container_enter_text import (
     OnMoveShowContainerEnterText,
 )
@@ -12,8 +13,10 @@ from core.definitions.side_effects.on_startup_show_container_enter_text import (
 from core.patterns.events.examine_event_pattern import ExamineEventPattern
 from core.patterns.events.look_in_event_pattern import LookInEventPattern
 from core.patterns.events.move_event_pattern import MoveEventPattern
+from core.patterns.events.pickup_event_pattern import PickUpEventPattern
 from core.patterns.events.startup_event_pattern import StartupEventPattern
 from core.patterns.facts.container_fact_pattern import ContainerFactPattern
+from core.patterns.facts.pickupable_fact_pattern import PickupableFactPattern
 from utils.type import Type
 
 
@@ -31,6 +34,9 @@ class ContainerFactDefinition(FactDefinition):
         text_examine: str | None = None,
         text_look: str | None = None,
         text_contents: str | None = None,
+        text_pickup: str | None = None,
+        text_drop: str | None = None,
+        can_pickup: bool = False,
     ):
         self.key = key
         self.name = name or self._default_name(key)
@@ -38,8 +44,17 @@ class ContainerFactDefinition(FactDefinition):
         self.text_examine = text_examine or self._default_examine_text(key)
         self.text_look = text_look or self._default_look_text(key)
         self.text_contents = text_contents or self._default_contents_text(key)
+        self.text_pickup = text_pickup or self._default_pickup_text(key)
+        self.text_drop = text_drop or self._default_drop_text(key)
+        self.can_pickup = can_pickup
 
     def to_metta(self) -> str:
+        trigger_pickup = TriggerFunctionDefinition(
+            PickUpEventPattern(self.key, "$where"), [OnEventPrint(self.text_pickup)]
+        )
+        trigger_drop = TriggerFunctionDefinition(
+            DropEventPattern(self.key, "$where"), [OnEventPrint(self.text_drop)]
+        )
         trigger_examine = TriggerFunctionDefinition(
             ExamineEventPattern(self.key), [OnEventPrint(self.text_examine)]
         )
@@ -62,6 +77,9 @@ class ContainerFactDefinition(FactDefinition):
             f"({self.LOOK_TEXT_FACT} {self.key} {self._quote(self.text_look)})\n"
         )
         container_contents_text = f"({self.CONTENTS_TEXT_FACT} {self.key} {self._quote(self.text_contents)})\n"
+        pickupable = (
+            f"{PickupableFactPattern(self.key).to_metta()}\n" if self.can_pickup else ""
+        )
         # fmt: off
         return (
             f"(: {self.key} {Type.CONTAINER.value})\n"
@@ -70,6 +88,9 @@ class ContainerFactDefinition(FactDefinition):
             f"{container_enter_text}"
             f"{container_look_text}"
             f"{container_contents_text}"
+            f"{pickupable}"
+            f"{trigger_pickup.to_metta()}\n"
+            f"{trigger_drop.to_metta()}\n"
             f"{trigger_examine.to_metta()}\n"
             f"{trigger_look_in.to_metta()}\n"
             f"{trigger_move_show_enter_text.to_metta()}\n"
@@ -95,6 +116,14 @@ class ContainerFactDefinition(FactDefinition):
     @staticmethod
     def _default_contents_text(key: str) -> str:
         return f"You notice {ContainerFactDefinition._default_name(key)} here."
+
+    @staticmethod
+    def _default_pickup_text(key: str) -> str:
+        return f"You pick up the {ContainerFactDefinition._default_name(key)}."
+
+    @staticmethod
+    def _default_drop_text(key: str) -> str:
+        return f"You set the {ContainerFactDefinition._default_name(key)} down."
 
     @staticmethod
     def _default_name(key: str) -> str:

@@ -25,7 +25,7 @@ class MoveTowardsFunctionDefinition(FunctionDefinition):
             f"    (match &self {state_at_match.to_metta()}\n"
             f"        (case (match &self {route_match.to_metta()} $to)\n"
             f"        (\n"
-            f"            (Empty {ResponseFactPattern(100, '"No way to go there"').to_metta()})\n"
+            f"            (Empty {ResponseFactPattern(100, '\"You cannot go that way.\"').to_metta()})\n"
             f"            ($to (case (match &self {route_block_match.to_metta()} $reason)\n"
             f"            (\n"
             f"                (Empty {TriggerFunctionPattern(move_event).to_metta()})\n"

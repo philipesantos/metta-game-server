@@ -54,8 +54,11 @@ class CaveModule(Module):
             name="Huge rock",
             text_pickup="",
             text_drop="",
-            text_examine="A massive boulder blocks the cave entrance. You cannot move it by hand.",
-            text_enter="A cave entrance is here, but a huge rock blocks it.",
+            text_examine=(
+                "The boulder is immense, wedged deep into the entrance and far too "
+                "heavy to shift by hand."
+            ),
+            text_enter="A massive boulder blocks the cave entrance here.",
             text_look="The rock is wedged tightly in place, completely sealing the path ahead.",
             can_pickup=False,
         )

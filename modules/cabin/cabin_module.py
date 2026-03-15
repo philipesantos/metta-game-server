@@ -28,8 +28,11 @@ class CabinModule(Module):
         locked_cabin = ContainerFactDefinition(
             key="locked_cabin",
             name="Locked cabin",
-            text_enter="A weathered locked cabin stands just off the path.",
-            text_examine="The cabin door is shut tight. A metal lock hangs from the latch.",
+            text_enter="A weathered cabin stands here, its door locked shut.",
+            text_examine=(
+                "The warped door is held closed by a rusted metal lock hanging from "
+                "the latch."
+            ),
             text_look="The cabin is locked.",
             text_contents="A weathered locked cabin stands just off the path.",
         )
@@ -43,8 +46,11 @@ class CabinModule(Module):
         cabin_container = ContainerFactDefinition(
             key="cabin",
             name="Cabin",
-            text_enter="A weathered cabin stands just off the path.",
-            text_examine="The cabin looks abandoned, but you can peer inside from the doorway.",
+            text_enter="A weathered cabin stands just off the path here.",
+            text_examine=(
+                "The cabin looks long abandoned, though the open doorway still lets "
+                "you peer inside."
+            ),
             text_look="You look inside the cabin.",
             text_contents="A weathered cabin stands just off the path.",
         )
@@ -53,8 +59,11 @@ class CabinModule(Module):
         fireplace = ContainerFactDefinition(
             key="fireplace",
             name="Stone fireplace",
-            text_enter="You see a stone fireplace built into the wall.",
-            text_examine="A thin layer of ash rests at the bottom. The soot above suggests it hasn't been lit for quite some time.",
+            text_enter="A cold stone fireplace is built into the wall here.",
+            text_examine=(
+                "A thin bed of ash rests at the bottom, and the soot above suggests "
+                "it has not been lit in a long while."
+            ),
             text_look="You peer inside the fireplace.",
             text_contents="A cold stone fireplace is built into the far wall.",
         )
@@ -66,8 +75,11 @@ class CabinModule(Module):
         loose_board = ContainerFactDefinition(
             key="loose_board",
             name="Loose board",
-            text_enter="One of the wooden boards looks slightly out of place.",
-            text_examine="The board shifts when you press it. There seems to be space beneath it.",
+            text_enter="One loose floorboard sits here, raised slightly from the others.",
+            text_examine=(
+                "The board shifts under your touch, leaving a narrow gap that hints "
+                "at empty space beneath the floor."
+            ),
             text_look="You crouch down and inspect the gap beneath the board.",
             text_contents="One floorboard near the wall sits slightly loose.",
         )
@@ -79,8 +91,11 @@ class CabinModule(Module):
         metal_key = ItemFactDefinition(
             key="metal_key",
             name="Metal key",
-            text_enter="You see a small metal key.",
-            text_examine="A small iron key with the word 'Cabin' faintly etched into its surface.",
+            text_enter="A small metal key rests here.",
+            text_examine=(
+                "The iron key is small and cold, with the word 'Cabin' faintly "
+                "etched into its surface."
+            ),
             text_look="Inside, a small metal key.",
             text_drop="You drop the metal key.",
             text_pickup="You pick up the metal key.",

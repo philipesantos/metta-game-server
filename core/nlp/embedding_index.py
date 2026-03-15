@@ -61,6 +61,14 @@ class EmbeddingIndex:
         if not normalized_query:
             return None
 
+        exact_matches = [
+            entry
+            for entry in self.entries
+            if entry.utterance.casefold() == normalized_query.casefold()
+        ]
+        if len(exact_matches) == 1:
+            return MatchResult(entry=exact_matches[0], score=1.0)
+
         query_vec = self.model.encode(
             [normalized_query],
             normalize_embeddings=True,

@@ -27,7 +27,7 @@ class OnLookInShowItems(SideEffectDefinition):
             f"))\n"
             f"    (case $result\n"
             f"    (\n"
-            f'        (() {ResponseFactPattern(20, "\"There is nothing inside\"").to_metta()})\n'
+            f'        (() {ResponseFactPattern(20, "\"It is empty.\"").to_metta()})\n'
             f"        ($_ $result)\n"
             f"    ))\n"
             f")"

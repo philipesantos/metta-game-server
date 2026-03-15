@@ -40,5 +40,5 @@ class DropFunctionDefinition(FunctionDefinition):
             intent="drop",
             templates=("drop {item}", "leave {item}"),
             metta="(drop ({item}))",
-            slots={"item": SlotSpec("item")},
+            slots={"item": SlotSpec("pickupable")},
         )

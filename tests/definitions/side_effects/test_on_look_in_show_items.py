@@ -52,7 +52,7 @@ class TestOnLookInShowItems(unittest.TestCase):
         trigger_look_in = TriggerFunctionPattern(LookInEventPattern("chest"))
         result = metta.run(f"!{trigger_look_in.to_metta()}")
 
-        self.assertEqual(unwrap_first_match(result).text, "There is nothing inside")
+        self.assertEqual(unwrap_first_match(result).text, "It is empty.")
 
     def test_shows_container_contents_text_for_nested_container(self):
         metta = get_test_metta()

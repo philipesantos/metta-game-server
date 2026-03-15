@@ -82,7 +82,8 @@ class TestMoveToFunctionDefinition(unittest.TestCase):
         move_to_plane = MoveToFunctionPattern("plane")
         result_move_to_plane = metta.run(f"!{move_to_plane.to_metta()}")
         self.assertEqual(
-            unwrap_first_match(result_move_to_plane).text, "No way to go there"
+            unwrap_first_match(result_move_to_plane).text,
+            "You cannot reach that place from here.",
         )
 
 

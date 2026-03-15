@@ -50,7 +50,10 @@ class StatuesModule(Module):
             name="Lion statue",
             text_pickup="",
             text_drop="",
-            text_examine="A crouching lion carved in stone. There is one empty slot set in its chest.",
+            text_examine=(
+                "The stone lion crouches low to the ground, and a single empty slot "
+                "has been carved into its chest."
+            ),
             text_enter="",
             text_look="The lion statue has one carved slot ready to hold something.",
             can_pickup=False,
@@ -67,7 +70,10 @@ class StatuesModule(Module):
             name="Eagle statue",
             text_pickup="",
             text_drop="",
-            text_examine="An eagle with spread wings is sculpted from worn stone. There is one empty slot in its chest.",
+            text_examine=(
+                "The eagle's wings are spread wide in weathered stone, and an empty "
+                "slot has been carved into its chest."
+            ),
             text_enter="",
             text_look="The eagle statue has one carved slot ready to hold something.",
             can_pickup=False,
@@ -84,7 +90,10 @@ class StatuesModule(Module):
             name="Bear statue",
             text_pickup="",
             text_drop="",
-            text_examine="A broad bear statue stands on two legs, chipped by time. One empty slot is carved into its shoulder.",
+            text_examine=(
+                "The broad bear statue rises on two legs, chipped by time, with an "
+                "empty slot carved into one shoulder."
+            ),
             text_enter="",
             text_look="The bear statue has one carved slot ready to hold something.",
             can_pickup=False,
@@ -110,8 +119,11 @@ class StatuesModule(Module):
                 name=rune_name,
                 text_pickup=f"You pick up the {greek_name} rune.",
                 text_drop=f"You set down the {greek_name} rune.",
-                text_examine=f"A carved {greek_name} rune, marked with the letter '{letter}'.",
-                text_enter=f"You see a {greek_name} rune here.",
+                text_examine=(
+                    f"The carved {greek_name} rune is worn smooth at the edges and "
+                    f"marked with the letter '{letter}'."
+                ),
+                text_enter=f"A {greek_name} rune rests here.",
                 text_look=f"A {greek_name} rune rests inside.",
             )
             world.add_definition(rune)

@@ -27,7 +27,9 @@ class CaveModuleOnBearThreatResolveStayStill(SideEffectDefinition):
         safe_message = ResponseFactPattern(
             120, '"You remain perfectly still until the bear goes away. You are safe for now."'
         )
-        stand_still_message = ResponseFactPattern(50, '"You stand still."')
+        stand_still_message = ResponseFactPattern(
+            50, '"You hold still for a moment."'
+        )
         # fmt: off
         return (
             f"(if {ExistsFunctionPattern(pending_state).to_metta()}\n"
