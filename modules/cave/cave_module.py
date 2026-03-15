@@ -38,7 +38,11 @@ class CaveModule(Module):
         self.cave_entrance_location = cave_entrance_location
         self.character = character
         self.cave_location = LocationFactDefinition(
-            key="cave", text_move_to="You are in the cave."
+            key="cave",
+            text_move_to=(
+                "A cold cave opens into darkness, its stone walls swallowing what "
+                "little light enters."
+            ),
         )
         self.bear = CharacterFactDefinition(
             key="bear",

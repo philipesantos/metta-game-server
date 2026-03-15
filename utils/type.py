@@ -8,4 +8,5 @@ class Type(Enum):
     CONTAINER = "Container"
     PICKUPABLE = "Pickupable"
     ROUTE = "Route"
+    ROUTE_DESCRIPTION = "RouteDescription"
     ROUTE_BLOCK = "RouteBlock"

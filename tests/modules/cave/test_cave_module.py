@@ -36,7 +36,9 @@ class TestCaveModule(unittest.TestCase):
         metta = get_test_metta()
 
         world = World()
-        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
         character = CharacterFactPattern("player", "John")
         CaveModule(cave_entrance, character).apply(world)
         metta.run(world.to_metta())
@@ -65,13 +67,17 @@ class TestCaveModule(unittest.TestCase):
         )
         self.assertEqual(unwrap_first_match(bear_state_result), bear_state.to_metta())
 
-        boulder_state = StateWrapperPattern(AtFactPattern("huge_rock", "path_1"))
+        boulder_state = StateWrapperPattern(
+            AtFactPattern("huge_rock", "ridge")
+        )
         boulder_result = metta.run(
             f"!(match &self {boulder_state.to_metta()} {boulder_state.to_metta()})"
         )
         self.assertEqual(unwrap_first_match(boulder_result), boulder_state.to_metta())
 
-        route_block_pattern = RouteBlockFactPattern("path_1", "cave", "$reason")
+        route_block_pattern = RouteBlockFactPattern(
+            "ridge", "cave", "$reason"
+        )
         route_block_result = metta.run(
             f"!(match &self {route_block_pattern.to_metta()} $reason)"
         )
@@ -82,7 +88,9 @@ class TestCaveModule(unittest.TestCase):
 
     def test_registers_stay_still_function(self):
         world = World()
-        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
         character = CharacterFactPattern("player", "John")
 
         CaveModule(cave_entrance, character).apply(world)
@@ -96,7 +104,9 @@ class TestCaveModule(unittest.TestCase):
 
     def test_registers_stay_still_trigger_for_any_location(self):
         world = World()
-        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
         character = CharacterFactPattern("player", "John")
 
         CaveModule(cave_entrance, character).apply(world)
@@ -114,7 +124,9 @@ class TestCaveModule(unittest.TestCase):
         metta = get_test_metta()
 
         world = World()
-        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
         character = CharacterFactPattern("player", "John")
 
         CaveModule(cave_entrance, character).apply(world)
@@ -135,13 +147,15 @@ class TestCaveModule(unittest.TestCase):
         metta = get_test_metta()
 
         world = World()
-        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
         character = CharacterFactPattern("player", "John")
 
         CaveModule(cave_entrance, character).apply(world)
         metta.run(world.to_metta())
 
-        trigger = TriggerFunctionPattern(MoveEventPattern("path_1", "cave"))
+        trigger = TriggerFunctionPattern(MoveEventPattern("ridge", "cave"))
         metta.run(f"!{trigger.to_metta()}")
 
         pending_state = StateWrapperPattern(BearThreatPendingFactPattern("player"))
@@ -154,7 +168,9 @@ class TestCaveModule(unittest.TestCase):
         metta = get_test_metta()
 
         world = World()
-        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
         character = CharacterFactPattern("player", "John")
 
         CaveModule(cave_entrance, character).apply(world)
@@ -194,7 +210,9 @@ class TestCaveModule(unittest.TestCase):
         metta = get_test_metta()
 
         world = World()
-        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
         character = CharacterFactPattern("player", "John")
 
         CaveModule(cave_entrance, character).apply(world)
@@ -221,7 +239,9 @@ class TestCaveModule(unittest.TestCase):
         metta = get_test_metta()
 
         world = World()
-        cave_entrance = LocationFactDefinition("path_1", "You are in the path 1.")
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
         character = CharacterFactPattern("player", "John")
 
         CaveModule(cave_entrance, character).apply(world)

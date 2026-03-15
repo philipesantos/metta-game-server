@@ -19,7 +19,7 @@ from modules.compass.functions.compass_directions_function_definition import (
     CompassDirectionsFunctionDefinition,
 )
 from tests.utils.metta import get_test_metta
-from tests.utils.utils import unwrap_first_match
+from utils.response import format_metta_output
 
 
 class TestCompassModuleOnMovePrintDirections(unittest.TestCase):
@@ -45,16 +45,36 @@ class TestCompassModuleOnMovePrintDirections(unittest.TestCase):
         metta.run(
             StateWrapperDefinition(AtFactPattern("compass", character.key)).to_metta()
         )
-        metta.run(RouteFactDefinition("cave", "north", "glade").to_metta())
-        metta.run(RouteFactDefinition("cave", "east", "beach").to_metta())
+        metta.run(
+            RouteFactDefinition(
+                "cave",
+                "north",
+                "glade",
+                "To the north, a steep trail climbs back toward the glade.",
+            ).to_metta()
+        )
+        metta.run(
+            RouteFactDefinition(
+                "cave",
+                "east",
+                "beach",
+                "To the east, a narrow passage slopes toward the beach.",
+            ).to_metta()
+        )
 
         trigger = TriggerFunctionPattern(MoveEventPattern("glade", "cave"))
         result = metta.run(f"!{trigger.to_metta()}")
-        result_text = unwrap_first_match(result).text
+        output_lines = format_metta_output(result).splitlines()
 
-        self.assertIn("You can go:", result_text)
-        self.assertIn("north", result_text)
-        self.assertIn("east", result_text)
+        self.assertIn(
+            "To the north, a steep trail climbs back toward the glade.",
+            output_lines,
+        )
+        self.assertIn(
+            "To the east, a narrow passage slopes toward the beach.",
+            output_lines,
+        )
+        self.assertEqual(len(output_lines), 2)
 
     def test_returns_empty_when_player_lacks_compass(self):
         metta = get_test_metta()

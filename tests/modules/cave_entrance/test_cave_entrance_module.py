@@ -20,10 +20,12 @@ class TestCaveEntranceModule(unittest.TestCase):
         metta = get_test_metta()
 
         world = World()
-        CaveEntranceModule("path_2", "cave").apply(world)
+        CaveEntranceModule("shore_path", "cave").apply(world)
         metta.run(world.to_metta())
 
-        rock_state = StateWrapperPattern(AtFactPattern("crescent_rock", "path_2"))
+        rock_state = StateWrapperPattern(
+            AtFactPattern("crescent_rock", "shore_path")
+        )
         rock_result = metta.run(
             f"!(match &self {rock_state.to_metta()} {rock_state.to_metta()})"
         )
@@ -41,7 +43,7 @@ class TestCaveEntranceModule(unittest.TestCase):
         character = CharacterFactPattern("player", "John")
 
         world = World()
-        CaveEntranceModule("path_2", "cave").apply(world)
+        CaveEntranceModule("shore_path", "cave").apply(world)
         metta.run(world.to_metta())
         metta.run(ExistsFunctionDefinition().to_metta())
         metta.run(UseFunctionDefinition(character).to_metta())

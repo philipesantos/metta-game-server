@@ -16,14 +16,16 @@ from modules.cabin.cabin_module import CabinModule
 class TestCabinModule(unittest.TestCase):
     def test_adds_locked_cabin_definition_and_unlock_trigger(self):
         world = World()
-        path_5 = LocationFactDefinition("path_5", "Path 5")
+        hollow_path = LocationFactDefinition(
+            "hollow_path", "You are on a quiet path through a shallow hollow."
+        )
         seashell = ContainerFactDefinition(
             "seashell",
             text_contents="A seashell rests here.",
         )
         oil = ItemFactDefinition("oil", "pick", "drop", "examine")
 
-        CabinModule(path_5, seashell, [oil]).apply(world)
+        CabinModule(hollow_path, seashell, [oil]).apply(world)
 
         metal_keys = [
             definition
@@ -45,7 +47,7 @@ class TestCabinModule(unittest.TestCase):
             if isinstance(definition, StateWrapperDefinition)
             and isinstance(definition.pattern, AtFactPattern)
             and definition.pattern.what == "locked_cabin"
-            and definition.pattern.where == "path_5"
+            and definition.pattern.where == "hollow_path"
         ]
         self.assertEqual(len(cabin_state_defs), 1)
         key_state_defs = [

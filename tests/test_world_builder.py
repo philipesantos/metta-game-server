@@ -88,7 +88,11 @@ class TestWorldBuilder(unittest.TestCase):
         metta = get_test_metta()
         metta.run(build_world().to_metta())
 
-        metta.run(StateWrapperDefinition(AtFactPattern("player", "path_2")).to_metta())
+        metta.run(
+            StateWrapperDefinition(
+                AtFactPattern("player", "shore_path")
+            ).to_metta()
+        )
         metta.run(StateWrapperDefinition(AtFactPattern("shovel", "player")).to_metta())
 
         result = metta.run(
@@ -100,13 +104,15 @@ class TestWorldBuilder(unittest.TestCase):
             output_lines,
         )
 
-        box_state = StateWrapperPattern(AtFactPattern("iron_box", "path_2"))
+        box_state = StateWrapperPattern(AtFactPattern("iron_box", "shore_path"))
         box_result = metta.run(
             f"!(match &self {box_state.to_metta()} {box_state.to_metta()})"
         )
         self.assertEqual(unwrap_first_match(box_result), box_state.to_metta())
 
-        soil_state = StateWrapperPattern(AtFactPattern("disturbed_soil", "path_2"))
+        soil_state = StateWrapperPattern(
+            AtFactPattern("disturbed_soil", "shore_path")
+        )
         soil_result = metta.run(
             f"!(match &self {soil_state.to_metta()} {soil_state.to_metta()})"
         )
@@ -129,7 +135,11 @@ class TestWorldBuilder(unittest.TestCase):
         self.assertIn("The cabin is locked.", locked_output_lines)
         self.assertNotIn("You peer inside the fireplace.", locked_output_lines)
 
-        metta.run(StateWrapperDefinition(AtFactPattern("player", "path_5")).to_metta())
+        metta.run(
+            StateWrapperDefinition(
+                AtFactPattern("player", "hollow_path")
+            ).to_metta()
+        )
         metta.run(
             StateWrapperDefinition(AtFactPattern("metal_key", "player")).to_metta()
         )
@@ -146,13 +156,13 @@ class TestWorldBuilder(unittest.TestCase):
         )
         self.assertEqual(metal_key_state_result, [[]])
         locked_cabin_state = StateWrapperPattern(
-            AtFactPattern("locked_cabin", "path_5")
+            AtFactPattern("locked_cabin", "hollow_path")
         )
         locked_cabin_state_result = metta.run(
             f"!(match &self {locked_cabin_state.to_metta()} {locked_cabin_state.to_metta()})"
         )
         self.assertEqual(locked_cabin_state_result, [[]])
-        cabin_state = StateWrapperPattern(AtFactPattern("cabin", "path_5"))
+        cabin_state = StateWrapperPattern(AtFactPattern("cabin", "hollow_path"))
         cabin_state_result = metta.run(
             f"!(match &self {cabin_state.to_metta()} {cabin_state.to_metta()})"
         )

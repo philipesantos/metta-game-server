@@ -73,36 +73,76 @@ def build_world() -> World:
     character_player = CharacterFactDefinition(key="player", name="John")
 
     location_glade = LocationFactDefinition(
-        key="glade", text_move_to="You are in the glade."
+        key="glade",
+        text_move_to=(
+            "A quiet glade opens beneath ancient trees, its grass bright with "
+            "scattered wildflowers."
+        ),
     )
     location_beach = LocationFactDefinition(
-        key="beach", text_move_to="You are in the beach."
+        key="beach",
+        text_move_to=(
+            "A broad beach of pale sand lies beneath dark rock beside the restless "
+            "water."
+        ),
     )
     location_boat = LocationFactDefinition(
-        key="boat", text_move_to="You are in the boat."
+        key="boat",
+        text_move_to=(
+            "A small weathered boat rocks gently with the tide, its planks creaking "
+            "underfoot."
+        ),
     )
     location_plane = LocationFactDefinition(
-        key="plane", text_move_to="You are in the plane."
+        key="plane",
+        text_move_to=(
+            "A broken fuselage rests among the trees, its torn metal frame exposed "
+            "to wind and rain."
+        ),
     )
     location_camping_site = LocationFactDefinition(
-        key="camping_site", text_move_to="You are in the camping site."
+        key="camping_site",
+        text_move_to=(
+            "An abandoned campsite lies beneath the trees, marked by flattened earth "
+            "and a ring of ash."
+        ),
     )
-    location_path_1 = LocationFactDefinition(
-        key="path_1", text_move_to="You are in the path 1."
+    location_ridge = LocationFactDefinition(
+        key="ridge",
+        text_move_to=(
+            "A narrow ridge of pale stone rises above the glade, open to wind and "
+            "sky."
+        ),
     )
-    location_path_2 = LocationFactDefinition(
-        key="path_2", text_move_to="You are in the path 2."
+    location_shore_path = LocationFactDefinition(
+        key="shore_path",
+        text_move_to=(
+            "A sandy trail descends toward the shore, where the air tastes of salt "
+            "and spray."
+        ),
     )
-    location_path_3 = LocationFactDefinition(
-        key="path_3", text_move_to="You are in the path 3."
+    location_forest_path = LocationFactDefinition(
+        key="forest_path",
+        text_move_to=(
+            "A dim forest trail winds between tall trunks over ground soft with old "
+            "needles."
+        ),
     )
-    location_path_4 = LocationFactDefinition(
-        key="path_4", text_move_to="You are in the path 4."
+    location_forked_path = LocationFactDefinition(
+        key="forked_path",
+        text_move_to=(
+            "A rough fork in the trail cuts through stony ground where the worn "
+            "tracks divide."
+        ),
     )
-    location_path_5 = LocationFactDefinition(
-        key="path_5", text_move_to="You are in the path 5."
+    location_hollow_path = LocationFactDefinition(
+        key="hollow_path",
+        text_move_to=(
+            "A quiet path runs through a shallow hollow where the air is cool and "
+            "still."
+        ),
     )
-    cave_module = CaveModule(location_path_1, character_player.to_pattern())
+    cave_module = CaveModule(location_ridge, character_player.to_pattern())
 
     world = World()
 
@@ -172,23 +212,93 @@ def build_world() -> World:
     world.add_definition(location_boat)
     world.add_definition(location_plane)
     world.add_definition(location_camping_site)
-    world.add_definition(location_path_1)
-    world.add_definition(location_path_2)
-    world.add_definition(location_path_3)
-    world.add_definition(location_path_4)
-    world.add_definition(location_path_5)
+    world.add_definition(location_ridge)
+    world.add_definition(location_shore_path)
+    world.add_definition(location_forest_path)
+    world.add_definition(location_forked_path)
+    world.add_definition(location_hollow_path)
     cave_module.apply(world)
 
-    add_route(world, location_glade, Direction.NORTH, location_path_1)
-    add_route(world, location_path_1, Direction.NORTH, cave_module.cave_location)
-    add_route(world, location_glade, Direction.EAST, location_path_2)
-    add_route(world, location_path_2, Direction.EAST, location_beach)
-    add_route(world, location_beach, Direction.NORTH, location_boat)
-    add_route(world, location_glade, Direction.SOUTH, location_path_3)
-    add_route(world, location_path_3, Direction.EAST, location_plane)
-    add_route(world, location_path_3, Direction.SOUTH, location_path_4)
-    add_route(world, location_path_4, Direction.WEST, location_path_5)
-    add_route(world, location_path_4, Direction.SOUTH, location_camping_site)
+    add_route(
+        world,
+        location_glade,
+        Direction.NORTH,
+        location_ridge,
+        "To the north, the ground rises toward a narrow ridge of pale stone.",
+        "To the south, the ridge slopes down toward the shelter of the glade.",
+    )
+    add_route(
+        world,
+        location_ridge,
+        Direction.NORTH,
+        cave_module.cave_location,
+        "To the north, a dark opening leads into the cold cave ahead.",
+        "To the south, faint daylight spills back across the ridge outside.",
+    )
+    add_route(
+        world,
+        location_glade,
+        Direction.EAST,
+        location_shore_path,
+        "To the east, a sandy trail winds toward the distant shore.",
+        "To the west, the trail climbs back inland toward the quiet glade.",
+    )
+    add_route(
+        world,
+        location_shore_path,
+        Direction.EAST,
+        location_beach,
+        "To the east, the trail descends the last stretch onto the beach.",
+        "To the west, a sandy trail leads back inland from the water's edge.",
+    )
+    add_route(
+        world,
+        location_beach,
+        Direction.NORTH,
+        location_boat,
+        "To the north, shallow water leads out to the small boat rocking with the tide.",
+        "To the south, the boat drifts back toward the beach.",
+    )
+    add_route(
+        world,
+        location_glade,
+        Direction.SOUTH,
+        location_forest_path,
+        "To the south, a dim trail slips beneath the trees.",
+        "To the north, the trees thin toward the light of the glade.",
+    )
+    add_route(
+        world,
+        location_forest_path,
+        Direction.EAST,
+        location_plane,
+        "To the east, the trail bends toward the broken fuselage in the trees.",
+        "To the west, a narrow way leads back from the wreck into the forest.",
+    )
+    add_route(
+        world,
+        location_forest_path,
+        Direction.SOUTH,
+        location_forked_path,
+        "To the south, the trail continues until the ground opens into a fork.",
+        "To the north, the trail narrows beneath the forest canopy.",
+    )
+    add_route(
+        world,
+        location_forked_path,
+        Direction.WEST,
+        location_hollow_path,
+        "To the west, a quieter branch turns into a shallow hollow.",
+        "To the east, the hollow path rises toward the fork.",
+    )
+    add_route(
+        world,
+        location_forked_path,
+        Direction.SOUTH,
+        location_camping_site,
+        "To the south, the trail drops toward an old campsite.",
+        "To the north, a worn path leads from the campsite to the fork.",
+    )
 
     world.add_definition(
         StateWrapperDefinition(AtFactPattern(character_player.key, location_glade.key))
@@ -206,7 +316,9 @@ def build_world() -> World:
     )
     world.add_definition(disturbed_soil)
     world.add_definition(
-        StateWrapperDefinition(AtFactPattern(disturbed_soil.key, location_path_2.key))
+        StateWrapperDefinition(
+            AtFactPattern(disturbed_soil.key, location_shore_path.key)
+        )
     )
 
     iron_box = ItemFactDefinition(
@@ -231,7 +343,7 @@ def build_world() -> World:
     world.add_definition(container_hollow_tree_trunk)
     world.add_definition(
         StateWrapperDefinition(
-            AtFactPattern(container_hollow_tree_trunk.key, location_path_3.key)
+            AtFactPattern(container_hollow_tree_trunk.key, location_forest_path.key)
         )
     )
 
@@ -246,7 +358,7 @@ def build_world() -> World:
     world.add_definition(container_rock_formation)
     world.add_definition(
         StateWrapperDefinition(
-            AtFactPattern(container_rock_formation.key, location_path_4.key)
+            AtFactPattern(container_rock_formation.key, location_forked_path.key)
         )
     )
 
@@ -327,7 +439,9 @@ def build_world() -> World:
     )
     world.add_definition(abandoned_well)
     world.add_definition(
-        StateWrapperDefinition(AtFactPattern(abandoned_well.key, location_path_5.key))
+        StateWrapperDefinition(
+            AtFactPattern(abandoned_well.key, location_hollow_path.key)
+        )
     )
 
     bucket = ContainerFactDefinition(
@@ -392,13 +506,13 @@ def build_world() -> World:
 
     CompassModule(character_player.to_pattern(), location_glade).apply(world)
     CabinModule(
-        location_path_5,
+        location_hollow_path,
         seashell,
         [lantern_oil],
     ).apply(world)
     StatuesModule(
         character_player.to_pattern(),
-        location_path_1,
+        location_ridge,
         [
             container_hollow_tree_trunk,
             container_rock_formation,
@@ -417,12 +531,22 @@ def add_route(
     location_from: LocationFactDefinition,
     direction: Direction,
     locations_to: LocationFactDefinition,
+    forward_description: str,
+    backward_description: str,
 ):
     world.add_definition(
-        RouteFactDefinition(location_from.key, direction.value, locations_to.key)
+        RouteFactDefinition(
+            location_from.key,
+            direction.value,
+            locations_to.key,
+            forward_description,
+        )
     )
     world.add_definition(
         RouteFactDefinition(
-            locations_to.key, direction.opposite.value, location_from.key
+            locations_to.key,
+            direction.opposite.value,
+            location_from.key,
+            backward_description,
         )
     )
