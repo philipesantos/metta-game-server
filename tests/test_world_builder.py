@@ -245,6 +245,23 @@ class TestWorldBuilder(unittest.TestCase):
             functioning_lantern_state.to_metta(),
         )
 
+    def test_using_item_on_unhandled_target_shows_default_message(self):
+        metta = get_test_metta()
+        metta.run(build_world().to_metta())
+
+        metta.run(StateWrapperDefinition(AtFactPattern("player", "glade")).to_metta())
+        metta.run(StateWrapperDefinition(AtFactPattern("oil", "player")).to_metta())
+        metta.run(
+            StateWrapperDefinition(AtFactPattern("satchel", "player")).to_metta()
+        )
+
+        result = metta.run(f"!{UseFunctionPattern('oil', 'satchel').to_metta()}")
+
+        self.assertIn(
+            "That doesn't seem to do anything.",
+            format_metta_output(result).splitlines(),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -50,8 +50,8 @@ from core.definitions.side_effects.on_look_in_show_items import OnLookInShowItem
 from core.definitions.side_effects.on_startup_show_enter_text import (
     OnStartupShowEnterText,
 )
-from core.definitions.side_effects.on_use_do_nothing import OnUseDoNothing
 from core.definitions.side_effects.on_use_combine_item import OnUseCombineItem
+from core.definitions.side_effects.on_use_fallback_print import OnUseFallbackPrint
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
 from core.patterns.events.drop_event_pattern import DropEventPattern
 from core.patterns.events.move_event_pattern import MoveEventPattern
@@ -192,7 +192,7 @@ def build_world() -> World:
     world.add_definition(
         TriggerFunctionDefinition(
             UseEventPattern("$what", "$with_what"),
-            [OnUseDoNothing()],
+            [OnUseFallbackPrint()],
         )
     )
     world.add_definition(

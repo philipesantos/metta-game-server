@@ -78,7 +78,7 @@ def main():
             embedding_index.update_entries(command_catalog)
             match = embedding_index.match(stripped)
             if match is None:
-                print("No commands available.")
+                print("That doesn't seem possible right now.")
                 continue
             print(f"[NL] {stripped} -> {match.entry.metta} ({match.score:.3f})")
             metta_query = f"!{match.entry.metta}"

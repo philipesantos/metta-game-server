@@ -1,6 +1,8 @@
 from core.patterns.event_pattern import EventPattern
 from core.definitions.function_definition import FunctionDefinition
 from core.definitions.side_effect_definition import SideEffectDefinition
+from core.patterns.events.use_event_pattern import UseEventPattern
+from core.patterns.facts.supported_use_fact_pattern import SupportedUseFactPattern
 
 
 class TriggerFunctionDefinition(FunctionDefinition):
@@ -14,8 +16,9 @@ class TriggerFunctionDefinition(FunctionDefinition):
                 (indent + line) if line else line for line in text.splitlines()
             )
 
+        metadata = self._metadata()
         # fmt: off
-        return "\n".join(
+        trigger_rules = "\n".join(
             (
                 f"(= (trigger {self.event.to_metta()})\n"
                 f"{indent_block(side_effect.to_metta(self.event))}\n"
@@ -23,4 +26,20 @@ class TriggerFunctionDefinition(FunctionDefinition):
             )
             for side_effect in self.side_effects
         )
+        if metadata:
+            return f"{metadata}\n{trigger_rules}"
+        return trigger_rules
         # fmt: on
+
+    def _metadata(self) -> str:
+        if not isinstance(self.event, UseEventPattern):
+            return ""
+        if self._is_variable(self.event.what) or self._is_variable(self.event.with_what):
+            return ""
+        return SupportedUseFactPattern(
+            self.event.what, self.event.with_what
+        ).to_metta()
+
+    @staticmethod
+    def _is_variable(value: str) -> bool:
+        return value.startswith("$")
