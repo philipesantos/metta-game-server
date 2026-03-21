@@ -29,9 +29,15 @@ class CaveModuleOnUseFunctioningLantern(SideEffectDefinition):
         player_in_cave = StateWrapperPattern(
             AtFactPattern(self.character.key, self.cave_location)
         )
-        bear_state = StateWrapperPattern(AtFactPattern(self.bear_key, self.cave_location))
-        pending_state = StateWrapperPattern(BearThreatPendingFactPattern(self.character.key))
-        lantern_state = StateWrapperPattern(AtFactPattern(event.what, self.character.key))
+        bear_state = StateWrapperPattern(
+            AtFactPattern(self.bear_key, self.cave_location)
+        )
+        pending_state = StateWrapperPattern(
+            BearThreatPendingFactPattern(self.character.key)
+        )
+        lantern_state = StateWrapperPattern(
+            AtFactPattern(event.what, self.character.key)
+        )
         cave_lit_state = StateWrapperPattern(CaveLitFactPattern(self.cave_location))
         visible_message = ResponseFactPattern(
             120,
@@ -41,9 +47,7 @@ class CaveModuleOnUseFunctioningLantern(SideEffectDefinition):
             120,
             '"The lantern light spills across damp stone walls and old bones scattered across the cave floor. A massive bear looms in the darkness, ready to tear you apart."',
         )
-        no_use_message = ResponseFactPattern(
-            100, '"The lantern has no use here."'
-        )
+        no_use_message = ResponseFactPattern(100, '"The lantern has no use here."')
         reveal_item_updates = "".join(
             f"               (() (add-atom &self {StateWrapperPattern(AtFactPattern(item.key, self.cave_location)).to_metta()}))\n"
             for item in self.cave_items_to_reveal

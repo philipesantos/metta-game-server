@@ -183,7 +183,9 @@ class CaveModule(Module):
                         self.lantern_oil,
                         self.functioning_lantern,
                     ),
-                    OnEventPrint("You pour the oil into the lantern. It is ready to use."),
+                    OnEventPrint(
+                        "You pour the oil into the lantern. It is ready to use."
+                    ),
                 ],
             )
         )

@@ -25,20 +25,22 @@ class CaveModuleOnBearThreatResolveStayStill(SideEffectDefinition):
         self.cave_items_to_reveal = cave_items_to_reveal or []
 
     def to_metta(self, event: StayStillEventPattern) -> str:
-        pending_state = StateWrapperPattern(BearThreatPendingFactPattern(self.character.key))
-        bear_state = StateWrapperPattern(AtFactPattern(self.bear_key, self.bear_location))
+        pending_state = StateWrapperPattern(
+            BearThreatPendingFactPattern(self.character.key)
+        )
+        bear_state = StateWrapperPattern(
+            AtFactPattern(self.bear_key, self.bear_location)
+        )
         visible_item_text = " ".join(
             item.text_enter for item in self.cave_items_to_reveal if item.text_enter
         )
-        safe_text = "You remain perfectly still until the bear goes away. You are safe for now."
+        safe_text = (
+            "You remain perfectly still until the bear goes away. You are safe for now."
+        )
         if visible_item_text:
             safe_text = f"{safe_text} {visible_item_text}"
-        safe_message = ResponseFactPattern(
-            120, self._quote(safe_text)
-        )
-        stand_still_message = ResponseFactPattern(
-            50, '"You hold still for a moment."'
-        )
+        safe_message = ResponseFactPattern(120, self._quote(safe_text))
+        stand_still_message = ResponseFactPattern(50, '"You hold still for a moment."')
         # fmt: off
         return (
             f"(if {ExistsFunctionPattern(pending_state).to_metta()}\n"

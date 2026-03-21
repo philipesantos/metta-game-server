@@ -17,7 +17,9 @@ from utils.response import format_metta_output
 
 
 class TestEscapeModule(unittest.TestCase):
-    @patch("modules.escape.escape_module.random.choice", side_effect=lambda items: items[0])
+    @patch(
+        "modules.escape.escape_module.random.choice", side_effect=lambda items: items[0]
+    )
     def test_using_propeller_on_boat_wins_when_propeller_is_chosen(self, _choice):
         metta = get_test_metta()
 
@@ -35,7 +37,9 @@ class TestEscapeModule(unittest.TestCase):
         escape_module.apply(world)
 
         world.add_definition(StateWrapperDefinition(AtFactPattern("player", "beach")))
-        world.add_definition(StateWrapperDefinition(AtFactPattern("propeller", "player")))
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern("propeller", "player"))
+        )
         metta.run(world.to_metta())
 
         result = metta.run("!(use (propeller boat))")
@@ -51,7 +55,9 @@ class TestEscapeModule(unittest.TestCase):
             "You fit the propeller onto the boat's motor. The engine catches, and you steer out across the water toward freedom.",
         )
 
-    @patch("modules.escape.escape_module.random.choice", side_effect=lambda items: items[1])
+    @patch(
+        "modules.escape.escape_module.random.choice", side_effect=lambda items: items[1]
+    )
     def test_using_battery_on_plane_wins_when_battery_is_chosen(self, _choice):
         metta = get_test_metta()
 

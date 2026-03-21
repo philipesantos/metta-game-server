@@ -15,7 +15,9 @@ class CaveModuleOnBearThreatDeath(SideEffectDefinition):
         self.character = character
 
     def to_metta(self, event: MoveEventPattern) -> str:
-        pending_state = StateWrapperPattern(BearThreatPendingFactPattern(self.character.key))
+        pending_state = StateWrapperPattern(
+            BearThreatPendingFactPattern(self.character.key)
+        )
         game_over_state = StateWrapperPattern(
             GameOverFactPattern(
                 '"The bear lunges before you can react and tears you apart. You died."'

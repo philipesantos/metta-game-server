@@ -18,7 +18,7 @@ class RouteDescriptionFactPattern(FactPattern):
     def to_metta(self) -> str:
         description = self._format_description()
         return (
-            f'({Type.ROUTE_DESCRIPTION.value} {self.location_from} '
+            f"({Type.ROUTE_DESCRIPTION.value} {self.location_from} "
             f"{self.direction} {self.location_to} {description})"
         )
 

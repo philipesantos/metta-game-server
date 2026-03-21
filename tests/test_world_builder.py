@@ -106,9 +106,7 @@ class TestWorldBuilder(unittest.TestCase):
         metta.run(build_world().to_metta())
 
         metta.run(
-            StateWrapperDefinition(
-                AtFactPattern("player", "shore_path")
-            ).to_metta()
+            StateWrapperDefinition(AtFactPattern("player", "shore_path")).to_metta()
         )
         metta.run(StateWrapperDefinition(AtFactPattern("shovel", "player")).to_metta())
 
@@ -127,9 +125,7 @@ class TestWorldBuilder(unittest.TestCase):
         )
         self.assertEqual(unwrap_first_match(box_result), box_state.to_metta())
 
-        soil_state = StateWrapperPattern(
-            AtFactPattern("disturbed_soil", "shore_path")
-        )
+        soil_state = StateWrapperPattern(AtFactPattern("disturbed_soil", "shore_path"))
         soil_result = metta.run(
             f"!(match &self {soil_state.to_metta()} {soil_state.to_metta()})"
         )
@@ -153,9 +149,7 @@ class TestWorldBuilder(unittest.TestCase):
         self.assertNotIn("You peer inside the fireplace.", locked_output_lines)
 
         metta.run(
-            StateWrapperDefinition(
-                AtFactPattern("player", "hollow_path")
-            ).to_metta()
+            StateWrapperDefinition(AtFactPattern("player", "hollow_path")).to_metta()
         )
         metta.run(
             StateWrapperDefinition(AtFactPattern("metal_key", "player")).to_metta()
@@ -251,9 +245,7 @@ class TestWorldBuilder(unittest.TestCase):
 
         metta.run(StateWrapperDefinition(AtFactPattern("player", "glade")).to_metta())
         metta.run(StateWrapperDefinition(AtFactPattern("oil", "player")).to_metta())
-        metta.run(
-            StateWrapperDefinition(AtFactPattern("satchel", "player")).to_metta()
-        )
+        metta.run(StateWrapperDefinition(AtFactPattern("satchel", "player")).to_metta())
 
         result = metta.run(f"!{UseFunctionPattern('oil', 'satchel').to_metta()}")
 

@@ -131,7 +131,9 @@ class EscapeModule(Module):
             StateWrapperDefinition(AtFactPattern(self.boat.key, self.boat_location.key))
         )
         world.add_definition(
-            StateWrapperDefinition(AtFactPattern(self.plane.key, self.plane_location.key))
+            StateWrapperDefinition(
+                AtFactPattern(self.plane.key, self.plane_location.key)
+            )
         )
         world.add_definition(
             TriggerFunctionDefinition(
