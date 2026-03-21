@@ -1,8 +1,13 @@
 import random
 
+from core.definitions.functions.trigger_function_definition import (
+    TriggerFunctionDefinition,
+)
 from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
+from core.definitions.side_effects.on_game_won import OnGameWon
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
+from core.patterns.events.use_event_pattern import UseEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.world import World
 from modules.module import Module
@@ -127,6 +132,28 @@ class EscapeModule(Module):
         )
         world.add_definition(
             StateWrapperDefinition(AtFactPattern(self.plane.key, self.plane_location.key))
+        )
+        world.add_definition(
+            TriggerFunctionDefinition(
+                UseEventPattern(self.propeller.key, self.boat.key),
+                [
+                    OnGameWon(
+                        "You fit the propeller onto the boat's motor. The engine catches, "
+                        "and you steer out across the water toward freedom."
+                    )
+                ],
+            )
+        )
+        world.add_definition(
+            TriggerFunctionDefinition(
+                UseEventPattern(self.battery.key, self.plane.key),
+                [
+                    OnGameWon(
+                        "You secure the battery in place. The dead controls shudder back "
+                        "to life, and the plane carries you away from the island."
+                    )
+                ],
+            )
         )
         if self.cave_item.key != self.propeller.key:
             world.add_definition(
