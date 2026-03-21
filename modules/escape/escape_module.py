@@ -53,15 +53,15 @@ class EscapeModule(Module):
                 text_drop="",
                 text_examine=(
                     "The boat's motor sits open and bare where the propeller should be, "
-                    "but the rest of the craft still looks sound enough to carry you away."
+                    "but the rest of the boat still looks sound enough to carry you away."
                 ),
                 text_enter=(
                     "A small weathered boat rocks near the shore, its motor stripped of "
                     "its propeller."
                 ),
                 text_look=(
-                    "The boat looks seaworthy, but its motor cannot do anything without "
-                    "a propeller."
+                    "The boat looks seaworthy, but the boat's motor cannot do anything "
+                    "without a propeller."
                 ),
                 can_pickup=False,
             )
@@ -71,14 +71,14 @@ class EscapeModule(Module):
                 text_pickup="",
                 text_drop="",
                 text_examine=(
-                    "The fuselage is split open and the frame is twisted beyond any hope "
-                    "of repair."
+                    "The plane's fuselage is split open and the frame is twisted beyond "
+                    "any hope of repair."
                 ),
                 text_enter=(
                     "A ruined plane lies tangled among the trees, its frame broken beyond repair."
                 ),
                 text_look=(
-                    "The wreck is too badly broken to ever leave the ground again."
+                    "This plane is too badly broken to ever leave the ground again."
                 ),
                 can_pickup=False,
             )
@@ -89,8 +89,8 @@ class EscapeModule(Module):
                 text_pickup="",
                 text_drop="",
                 text_examine=(
-                    "The hull is split and the engine housing is cracked clean through. "
-                    "No part of it looks worth saving."
+                    "The boat's hull is split and the engine housing is cracked clean "
+                    "through. No part of the boat looks worth saving."
                 ),
                 text_enter=(
                     "A wrecked boat lies half-drawn onto the shore, too badly damaged to use."
@@ -106,11 +106,11 @@ class EscapeModule(Module):
                 text_pickup="",
                 text_drop="",
                 text_examine=(
-                    "The cockpit is intact, and the battery compartment hangs open as if "
-                    "someone pulled the power source out long ago."
+                    "The plane's cockpit is intact, and the battery compartment hangs "
+                    "open as if someone pulled the power source out long ago."
                 ),
                 text_enter=(
-                    "A broken fuselage rests among the trees, its battery compartment standing open."
+                    "A broken plane rests among the trees, its battery compartment standing open."
                 ),
                 text_look=(
                     "The plane is crippled, but the open battery compartment suggests it "

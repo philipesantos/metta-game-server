@@ -2,6 +2,7 @@ from hyperon import MeTTa
 from core.nlp import EmbeddingIndex, build_command_catalog
 from core.patterns.events.startup_event_pattern import StartupEventPattern
 from core.patterns.facts.game_over_fact_pattern import GameOverFactPattern
+from core.patterns.facts.game_won_fact_pattern import GameWonFactPattern
 from core.patterns.functions.synchronize_tick_function_pattern import (
     SynchronizeTickFunctionPattern,
 )
@@ -24,13 +25,17 @@ def _unwrap_atom(atom) -> str:
     return str(atom)
 
 
-def _game_over_message(metta: MeTTa) -> str | None:
-    result = metta.run(
-        f"!(match &self {StateWrapperPattern(GameOverFactPattern('$reason')).to_metta()} $reason)"
-    )
-    if not result or not result[0]:
-        return None
-    return _unwrap_atom(result[0][0])
+def _end_state_message(metta: MeTTa) -> str | None:
+    for pattern in (
+        GameWonFactPattern("$reason"),
+        GameOverFactPattern("$reason"),
+    ):
+        result = metta.run(
+            f"!(match &self {StateWrapperPattern(pattern).to_metta()} $reason)"
+        )
+        if result and result[0]:
+            return _unwrap_atom(result[0][0])
+    return None
 
 
 def main():
@@ -66,9 +71,9 @@ def main():
             break
 
         stripped = user_query.strip()
-        game_over_message = _game_over_message(metta)
-        if game_over_message is not None:
-            print(game_over_message)
+        end_state_message = _end_state_message(metta)
+        if end_state_message is not None:
+            print(end_state_message)
             continue
 
         if stripped.startswith("!") or stripped.startswith("("):
@@ -84,9 +89,9 @@ def main():
             metta_query = f"!{match.entry.metta}"
 
         result_output = metta.run(metta_query)
-        game_over_message = _game_over_message(metta)
-        if game_over_message is not None:
-            print(game_over_message)
+        end_state_message = _end_state_message(metta)
+        if end_state_message is not None:
+            print(end_state_message)
             continue
         print(format_metta_output(result_output))
         print(metta.run(f"!{SynchronizeTickFunctionPattern().to_metta()}"))
