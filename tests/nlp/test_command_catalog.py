@@ -101,9 +101,7 @@ class TestCommandCatalog(unittest.TestCase):
         self.assertEqual(utterance_to_metta.get("get compass"), "(pickup (compass))")
         self.assertEqual(utterance_to_metta.get("get oil"), "(pickup (oil))")
         self.assertEqual(utterance_to_metta.get("get satchel"), "(pickup (satchel))")
-        self.assertEqual(
-            utterance_to_metta.get("pick satchel"), "(pickup (satchel))"
-        )
+        self.assertEqual(utterance_to_metta.get("pick satchel"), "(pickup (satchel))")
         self.assertEqual(utterance_to_metta.get("drop satchel"), "(drop (satchel))")
         self.assertEqual(
             utterance_to_metta.get("go to camping site"), "(move-to (camping_site))"
@@ -117,13 +115,9 @@ class TestCommandCatalog(unittest.TestCase):
             "(use (compass crescent_rock))",
         )
         self.assertEqual(utterance_to_metta.get("use compass"), "(use (compass))")
-        self.assertEqual(
-            utterance_to_metta.get("activate compass"), "(use (compass))"
-        )
+        self.assertEqual(utterance_to_metta.get("activate compass"), "(use (compass))")
         self.assertEqual(utterance_to_metta.get("turn compass"), "(use (compass))")
-        self.assertEqual(
-            utterance_to_metta.get("turn on compass"), "(use (compass))"
-        )
+        self.assertEqual(utterance_to_metta.get("turn on compass"), "(use (compass))")
         self.assertEqual(
             utterance_to_metta.get("examine compass"),
             "(examine (compass))",

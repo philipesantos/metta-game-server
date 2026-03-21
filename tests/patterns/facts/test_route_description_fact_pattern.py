@@ -20,7 +20,7 @@ class TestRouteDescriptionFactPattern(unittest.TestCase):
         )
         self.assertEqual(
             route_description.to_metta(),
-            f'({Type.ROUTE_DESCRIPTION.value} {location_from} {direction} '
+            f"({Type.ROUTE_DESCRIPTION.value} {location_from} {direction} "
             f'{location_to} "{description}")',
         )
 

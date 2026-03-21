@@ -46,10 +46,12 @@ class TestCharacterFactDefinition(unittest.TestCase):
             ).to_metta()
         )
 
-        result_text = metta.run('!(match &self (EnterText bear $text) $text)')
+        result_text = metta.run("!(match &self (EnterText bear $text) $text)")
         self.assertEqual(unwrap_first_match(result_text), "A bear is here.")
 
-        result_priority = metta.run("!(match &self (EnterPriority bear $priority) $priority)")
+        result_priority = metta.run(
+            "!(match &self (EnterPriority bear $priority) $priority)"
+        )
         self.assertEqual(unwrap_first_match(result_priority), 30)
 
 

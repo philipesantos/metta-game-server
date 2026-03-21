@@ -23,9 +23,7 @@ class TestCaveEntranceModule(unittest.TestCase):
         CaveEntranceModule("shore_path", "cave").apply(world)
         metta.run(world.to_metta())
 
-        rock_state = StateWrapperPattern(
-            AtFactPattern("crescent_rock", "shore_path")
-        )
+        rock_state = StateWrapperPattern(AtFactPattern("crescent_rock", "shore_path"))
         rock_result = metta.run(
             f"!(match &self {rock_state.to_metta()} {rock_state.to_metta()})"
         )

@@ -42,11 +42,11 @@ class TriggerFunctionDefinition(FunctionDefinition):
             if self._is_variable(self.event.what):
                 return ""
             return SupportedSingleUseFactPattern(self.event.what).to_metta()
-        if self._is_variable(self.event.what) or self._is_variable(self.event.with_what):
+        if self._is_variable(self.event.what) or self._is_variable(
+            self.event.with_what
+        ):
             return ""
-        return SupportedUseFactPattern(
-            self.event.what, self.event.with_what
-        ).to_metta()
+        return SupportedUseFactPattern(self.event.what, self.event.with_what).to_metta()
 
     @staticmethod
     def _is_variable(value: str) -> bool:

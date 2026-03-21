@@ -29,7 +29,9 @@ class FakeEmbeddingIndex:
 
 
 class FakeMetta:
-    def __init__(self, win_message: str | None = None, game_over_message: str | None = None):
+    def __init__(
+        self, win_message: str | None = None, game_over_message: str | None = None
+    ):
         self.win_message = win_message
         self.game_over_message = game_over_message
         self.calls: list[str] = []
@@ -89,9 +91,16 @@ class TestMain(unittest.TestCase):
         with patch("main.MeTTa", return_value=metta):
             main.main()
 
-        self.assertIn("You escaped.", [call.args[0] for call in mock_print.call_args_list])
+        self.assertIn(
+            "You escaped.", [call.args[0] for call in mock_print.call_args_list]
+        )
         self.assertNotIn("!use (battery plane)", metta.calls)
-        self.assertFalse(any("[NL] use battery on plane" in str(call.args[0]) for call in mock_print.call_args_list))
+        self.assertFalse(
+            any(
+                "[NL] use battery on plane" in str(call.args[0])
+                for call in mock_print.call_args_list
+            )
+        )
 
 
 if __name__ == "__main__":

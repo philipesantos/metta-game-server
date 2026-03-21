@@ -59,7 +59,9 @@ class TestCaveModule(unittest.TestCase):
         location_result = metta.run(
             f"!(match &self {location_pattern.to_metta()} {location_pattern.to_metta()})"
         )
-        self.assertEqual(unwrap_first_match(location_result), location_pattern.to_metta())
+        self.assertEqual(
+            unwrap_first_match(location_result), location_pattern.to_metta()
+        )
 
         bear_pattern = CharacterFactPattern("bear", "Bear")
         bear_result = metta.run(
@@ -67,7 +69,9 @@ class TestCaveModule(unittest.TestCase):
         )
         self.assertEqual(unwrap_first_match(bear_result), bear_pattern.to_metta())
 
-        bear_enter_text_result = metta.run("!(match &self (EnterText bear $text) $text)")
+        bear_enter_text_result = metta.run(
+            "!(match &self (EnterText bear $text) $text)"
+        )
         self.assertEqual(
             unwrap_first_match(bear_enter_text_result),
             "A massive bear looms in the darkness, ready to tear you apart.",
@@ -79,17 +83,13 @@ class TestCaveModule(unittest.TestCase):
         )
         self.assertEqual(bear_state_result, [[]])
 
-        boulder_state = StateWrapperPattern(
-            AtFactPattern("huge_rock", "ridge")
-        )
+        boulder_state = StateWrapperPattern(AtFactPattern("huge_rock", "ridge"))
         boulder_result = metta.run(
             f"!(match &self {boulder_state.to_metta()} {boulder_state.to_metta()})"
         )
         self.assertEqual(unwrap_first_match(boulder_result), boulder_state.to_metta())
 
-        route_block_pattern = RouteBlockFactPattern(
-            "ridge", "cave", "$reason"
-        )
+        route_block_pattern = RouteBlockFactPattern("ridge", "cave", "$reason")
         route_block_result = metta.run(
             f"!(match &self {route_block_pattern.to_metta()} $reason)"
         )
@@ -160,7 +160,9 @@ class TestCaveModule(unittest.TestCase):
         lantern_state_result = metta.run(
             f"!(match &self {lantern_state.to_metta()} {lantern_state.to_metta()})"
         )
-        self.assertEqual(unwrap_first_match(lantern_state_result), lantern_state.to_metta())
+        self.assertEqual(
+            unwrap_first_match(lantern_state_result), lantern_state.to_metta()
+        )
 
         supported_use = SupportedUseFactPattern("oil", "lantern")
         supported_use_result = metta.run(
@@ -196,7 +198,9 @@ class TestCaveModule(unittest.TestCase):
         )
         metta.run(world.to_metta())
 
-        result = metta.run(f"!{UseItemFunctionPattern('functioning_lantern').to_metta()}")
+        result = metta.run(
+            f"!{UseItemFunctionPattern('functioning_lantern').to_metta()}"
+        )
 
         self.assertIn(
             "The lantern light spills across damp stone walls and old bones scattered across the cave floor. A massive bear looms in the darkness, ready to tear you apart.",
@@ -307,7 +311,9 @@ class TestCaveModule(unittest.TestCase):
         )
         metta.run(world.to_metta())
 
-        result = metta.run(f"!{UseItemFunctionPattern('functioning_lantern').to_metta()}")
+        result = metta.run(
+            f"!{UseItemFunctionPattern('functioning_lantern').to_metta()}"
+        )
 
         self.assertIn(
             "The lantern has no use here.",
@@ -327,7 +333,9 @@ class TestCaveModule(unittest.TestCase):
         CaveModule(cave_entrance, character).apply(world)
         metta.run(world.to_metta())
 
-        result = metta.run(f"!{TriggerFunctionPattern(MoveEventPattern('ridge', 'cave')).to_metta()}")
+        result = metta.run(
+            f"!{TriggerFunctionPattern(MoveEventPattern('ridge', 'cave')).to_metta()}"
+        )
 
         self.assertIn(
             "The cave is pitch dark, and you cannot make out anything ahead.",
@@ -348,7 +356,9 @@ class TestCaveModule(unittest.TestCase):
         world.add_definition(StateWrapperDefinition(CaveLitFactPattern("cave")))
         metta.run(world.to_metta())
 
-        result = metta.run(f"!{TriggerFunctionPattern(MoveEventPattern('ridge', 'cave')).to_metta()}")
+        result = metta.run(
+            f"!{TriggerFunctionPattern(MoveEventPattern('ridge', 'cave')).to_metta()}"
+        )
 
         self.assertIn(
             "The lantern light spills across damp stone walls and old bones scattered across the cave floor.",

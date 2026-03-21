@@ -21,8 +21,12 @@ class CaveModuleOnBearEncounterArmThreat(SideEffectDefinition):
         self.bear_location = bear_location
 
     def to_metta(self, event: MoveEventPattern) -> str:
-        pending_state = StateWrapperPattern(BearThreatPendingFactPattern(self.character.key))
-        bear_state = StateWrapperPattern(AtFactPattern(self.bear_key, self.bear_location))
+        pending_state = StateWrapperPattern(
+            BearThreatPendingFactPattern(self.character.key)
+        )
+        bear_state = StateWrapperPattern(
+            AtFactPattern(self.bear_key, self.bear_location)
+        )
         # fmt: off
         return (
             f"(if {ExistsFunctionPattern(bear_state).to_metta()}\n"

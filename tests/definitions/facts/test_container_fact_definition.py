@@ -103,9 +103,7 @@ class TestContainerFactDefinition(unittest.TestCase):
         )
 
         pickupable = PickupableFactPattern("$key")
-        result_pickupable = metta.run(
-            f"!(match &self {pickupable.to_metta()} $key)"
-        )
+        result_pickupable = metta.run(f"!(match &self {pickupable.to_metta()} $key)")
         self.assertEqual(unwrap_first_match(result_pickupable), key)
 
         pickup_trigger = TriggerFunctionPattern(PickUpEventPattern(key, "glade"))

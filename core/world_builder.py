@@ -104,8 +104,7 @@ def build_world() -> World:
     location_ridge = LocationFactDefinition(
         key="ridge",
         text_move_to=(
-            "A narrow ridge of pale stone rises above the glade, open to wind and "
-            "sky."
+            "A narrow ridge of pale stone rises above the glade, open to wind and sky."
         ),
     )
     location_shore_path = LocationFactDefinition(
@@ -355,9 +354,7 @@ def build_world() -> World:
             "The iron box is small and heavy in the hand, its rusted seams still "
             "clamped tightly shut."
         ),
-        text_enter=(
-            "Half-buried in the loose soil is a small iron box."
-        ),
+        text_enter=("Half-buried in the loose soil is a small iron box."),
         text_look="Inside, a small iron box is wedged in the dirt.",
     )
     world.add_definition(iron_box)
@@ -384,8 +381,7 @@ def build_world() -> World:
         key="rock_formation",
         name="Suspicious rock formation",
         text_enter=(
-            "A strange rock formation rises here. A narrow gap runs between the "
-            "stones."
+            "A strange rock formation rises here. A narrow gap runs between the stones."
         ),
         text_examine=(
             "The stones look too neatly arranged to be natural, and a narrow gap "
@@ -491,10 +487,7 @@ def build_world() -> World:
     waterfall = ContainerFactDefinition(
         key="waterfall",
         name="Waterfall",
-        text_enter=(
-            "A narrow waterfall spills down the rocks here beside the "
-            "beach."
-        ),
+        text_enter=("A narrow waterfall spills down the rocks here beside the beach."),
         text_examine=(
             "Cold water sheets over the dark rock and disappears into a shallow pool "
             "at the base."
