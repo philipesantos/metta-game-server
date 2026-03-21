@@ -516,6 +516,8 @@ def build_world() -> World:
             bucket,
             waterfall,
         ],
+        fixed_rune_location_key="glade",
+        cave_entrance_block=cave_module.entrance_block,
     ).apply(world)
 
     world.add_definition(StateWrapperDefinition(TickFactPattern("1")))

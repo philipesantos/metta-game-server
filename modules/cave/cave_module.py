@@ -16,6 +16,7 @@ from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
 from core.world import World
 from modules.module import Module
+from modules.cave.cave_entrance_block import CaveEntranceBlock
 from modules.cave.functions.stay_still_function_definition import (
     StayStillFunctionDefinition,
 )
@@ -73,6 +74,13 @@ class CaveModule(Module):
             text_enter="A massive boulder blocks the cave entrance here.",
             text_look="The rock is wedged tightly in place, completely sealing the path ahead.",
             can_pickup=False,
+        )
+        self.entrance_block = CaveEntranceBlock(
+            self.boulder.key,
+            self.cave_entrance_location.key,
+            self.cave_entrance_location.key,
+            self.cave_location.key,
+            "A huge rock blocks the cave entrance.",
         )
         self.lantern = ItemFactDefinition(
             key="lantern",
@@ -154,14 +162,17 @@ class CaveModule(Module):
         world.add_definition(self.boulder)
         world.add_definition(
             StateWrapperDefinition(
-                AtFactPattern(self.boulder.key, self.cave_entrance_location.key)
+                AtFactPattern(
+                    self.entrance_block.boulder_key,
+                    self.entrance_block.boulder_location,
+                )
             )
         )
         world.add_definition(
             RouteBlockFactDefinition(
-                self.cave_entrance_location.key,
-                self.cave_location.key,
-                "A huge rock blocks the cave entrance.",
+                self.entrance_block.route_from,
+                self.entrance_block.route_to,
+                self.entrance_block.route_reason,
             )
         )
         world.add_definition(self.lantern_oil)
