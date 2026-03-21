@@ -142,7 +142,22 @@ def build_world() -> World:
             "still."
         ),
     )
-    cave_module = CaveModule(location_ridge, character_player.to_pattern())
+    big_chest = ContainerFactDefinition(
+        key="chest",
+        name="Big chest",
+        text_enter="Beside the old tent sits a large chest.",
+        text_examine=(
+            "The chest is broad and heavy, its lid sitting open as if someone left "
+            "in a hurry."
+        ),
+        text_look="You look inside the chest.",
+        text_contents="A big chest sits near the tent.",
+    )
+    cave_module = CaveModule(
+        location_ridge,
+        character_player.to_pattern(),
+        lantern_container=big_chest,
+    )
 
     world = World()
 
@@ -384,17 +399,6 @@ def build_world() -> World:
         )
     )
 
-    big_chest = ContainerFactDefinition(
-        key="chest",
-        name="Big chest",
-        text_enter="Beside the old tent sits a large chest.",
-        text_examine=(
-            "The chest is broad and heavy, its lid sitting open as if someone left "
-            "in a hurry."
-        ),
-        text_look="You look inside the chest.",
-        text_contents="A big chest sits near the tent.",
-    )
     world.add_definition(big_chest)
     world.add_definition(
         StateWrapperDefinition(AtFactPattern(big_chest.key, location_camping_site.key))
@@ -431,37 +435,6 @@ def build_world() -> World:
             ],
         )
     )
-
-    lantern = ItemFactDefinition(
-        key="lantern",
-        name="Lantern",
-        text_enter="A weathered lantern rests here, dulled by dust and age.",
-        text_examine=(
-            "The lantern's glass is clouded and the reservoir is dry, but the frame "
-            "itself is still intact."
-        ),
-        text_look="Inside, a weathered lantern lies in the chest.",
-        text_drop="You drop the lantern.",
-        text_pickup="You pick up the lantern.",
-    )
-    world.add_definition(lantern)
-    world.add_definition(
-        StateWrapperDefinition(AtFactPattern(lantern.key, big_chest.key))
-    )
-
-    functioning_lantern = ItemFactDefinition(
-        key="functioning_lantern",
-        name="Lantern",
-        text_pickup="You pick up the lantern.",
-        text_drop="You drop the lantern.",
-        text_examine=(
-            "Fresh oil sloshes inside the weathered lantern, ready to feed a steady "
-            "flame."
-        ),
-        text_enter="A lantern filled with fresh oil rests here.",
-        text_look="Inside, a lantern filled with fresh oil rests in the chest.",
-    )
-    world.add_definition(functioning_lantern)
 
     abandoned_well = ContainerFactDefinition(
         key="well",
@@ -532,35 +505,11 @@ def build_world() -> World:
         StateWrapperDefinition(AtFactPattern(waterfall.key, location_beach.key))
     )
 
-    lantern_oil = ItemFactDefinition(
-        key="oil",
-        name="Lantern oil",
-        text_enter="A small metal flask of lantern oil has been left here.",
-        text_examine=(
-            "The flask is sealed tight and filled with clear lamp oil that smells "
-            "sharp and flammable."
-        ),
-        text_look="A small flask of lantern oil rests here.",
-        text_drop="You set the lantern oil down.",
-        text_pickup="You pick up the lantern oil.",
-    )
-
-    world.add_definition(lantern_oil)
-    world.add_definition(
-        TriggerFunctionDefinition(
-            UseEventPattern(lantern_oil.key, lantern.key),
-            [
-                OnUseCombineItem(lantern, lantern_oil, functioning_lantern),
-                OnEventPrint("You pour the oil into the lantern. It is ready to use."),
-            ],
-        )
-    )
-
     CompassModule(character_player.to_pattern(), location_glade).apply(world)
     CabinModule(
         location_hollow_path,
         seashell,
-        [lantern_oil],
+        [cave_module.lantern_oil],
     ).apply(world)
     StatuesModule(
         character_player.to_pattern(),
