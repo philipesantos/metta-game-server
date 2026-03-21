@@ -72,6 +72,7 @@ from core.world import World
 from modules.cabin.cabin_module import CabinModule
 from modules.cave.cave_module import CaveModule
 from modules.compass.compass_module import CompassModule
+from modules.escape.escape_module import EscapeModule
 from modules.statues.statues_module import StatuesModule
 from utils.direction import Direction
 
@@ -91,20 +92,6 @@ def build_world() -> World:
         text_move_to=(
             "A broad beach of pale sand lies beneath dark rock beside the restless "
             "water."
-        ),
-    )
-    location_boat = LocationFactDefinition(
-        key="boat",
-        text_move_to=(
-            "A small weathered boat rocks gently with the tide, its planks creaking "
-            "underfoot."
-        ),
-    )
-    location_plane = LocationFactDefinition(
-        key="plane",
-        text_move_to=(
-            "A broken fuselage rests among the trees, its torn metal frame exposed "
-            "to wind and rain."
         ),
     )
     location_camping_site = LocationFactDefinition(
@@ -135,6 +122,13 @@ def build_world() -> World:
             "needles."
         ),
     )
+    location_plane_site = LocationFactDefinition(
+        key="plane_site",
+        text_move_to=(
+            "The trees thin around a scar of torn earth and broken branches where "
+            "something large came down hard."
+        ),
+    )
     location_forked_path = LocationFactDefinition(
         key="forked_path",
         text_move_to=(
@@ -160,10 +154,12 @@ def build_world() -> World:
         text_look="You look inside the chest.",
         text_contents="A big chest sits near the tent.",
     )
+    escape_module = EscapeModule(location_beach, location_plane_site)
     cave_module = CaveModule(
         location_ridge,
         character_player.to_pattern(),
         lantern_container=big_chest,
+        cave_items_to_reveal=[escape_module.get_item()],
     )
 
     world = World()
@@ -240,15 +236,15 @@ def build_world() -> World:
 
     world.add_definition(location_glade)
     world.add_definition(location_beach)
-    world.add_definition(location_boat)
-    world.add_definition(location_plane)
     world.add_definition(location_camping_site)
     world.add_definition(location_ridge)
     world.add_definition(location_shore_path)
     world.add_definition(location_forest_path)
+    world.add_definition(location_plane_site)
     world.add_definition(location_forked_path)
     world.add_definition(location_hollow_path)
     cave_module.apply(world)
+    escape_module.apply(world)
 
     add_route(
         world,
@@ -284,14 +280,6 @@ def build_world() -> World:
     )
     add_route(
         world,
-        location_beach,
-        Direction.NORTH,
-        location_boat,
-        "To the north, shallow water leads out to the small boat rocking with the tide.",
-        "To the south, the boat drifts back toward the beach.",
-    )
-    add_route(
-        world,
         location_glade,
         Direction.SOUTH,
         location_forest_path,
@@ -302,8 +290,8 @@ def build_world() -> World:
         world,
         location_forest_path,
         Direction.EAST,
-        location_plane,
-        "To the east, the trail bends toward the broken fuselage in the trees.",
+        location_plane_site,
+        "To the east, the trees open around a stretch of torn earth and broken timber.",
         "To the west, a narrow way leads back from the wreck into the forest.",
     )
     add_route(
