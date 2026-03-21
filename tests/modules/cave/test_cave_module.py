@@ -1,6 +1,7 @@
 import unittest
 
 from core.definitions.facts.container_fact_definition import ContainerFactDefinition
+from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.functions.exists_function_definition import (
     ExistsFunctionDefinition,
 )
@@ -32,6 +33,7 @@ from modules.cave.functions.stay_still_function_definition import (
 from modules.cave.patterns.bear_threat_pending_fact_pattern import (
     BearThreatPendingFactPattern,
 )
+from modules.cave.patterns.cave_lit_fact_pattern import CaveLitFactPattern
 from modules.cave.patterns.stay_still_event_pattern import StayStillEventPattern
 from modules.cave.patterns.stay_still_function_pattern import (
     StayStillFunctionPattern,
@@ -75,7 +77,7 @@ class TestCaveModule(unittest.TestCase):
         bear_state_result = metta.run(
             f"!(match &self {bear_state.to_metta()} {bear_state.to_metta()})"
         )
-        self.assertEqual(unwrap_first_match(bear_state_result), bear_state.to_metta())
+        self.assertEqual(bear_state_result, [[]])
 
         boulder_state = StateWrapperPattern(
             AtFactPattern("huge_rock", "ridge")
@@ -168,7 +170,7 @@ class TestCaveModule(unittest.TestCase):
             unwrap_first_match(supported_use_result), supported_use.to_metta()
         )
 
-    def test_using_functioning_lantern_in_cave_prints_visibility_message(self):
+    def test_using_functioning_lantern_in_cave_reveals_bear_and_arms_threat(self):
         metta = get_test_metta()
 
         world = World()
@@ -197,8 +199,86 @@ class TestCaveModule(unittest.TestCase):
         result = metta.run(f"!{UseItemFunctionPattern('functioning_lantern').to_metta()}")
 
         self.assertIn(
-            "You raise the lantern and the cave comes into view.",
+            "The lantern light spills across damp stone walls and old bones scattered across the cave floor. A massive bear looms in the darkness, ready to tear you apart.",
             format_metta_output(result),
+        )
+
+        bear_state = StateWrapperPattern(AtFactPattern("bear", "cave"))
+        bear_state_result = metta.run(
+            f"!(match &self {bear_state.to_metta()} {bear_state.to_metta()})"
+        )
+        self.assertEqual(unwrap_first_match(bear_state_result), bear_state.to_metta())
+
+        lantern_state = StateWrapperPattern(
+            AtFactPattern("functioning_lantern", character.key)
+        )
+        lantern_state_result = metta.run(
+            f"!(match &self {lantern_state.to_metta()} {lantern_state.to_metta()})"
+        )
+        self.assertEqual(lantern_state_result, [[]])
+
+        pending_state = StateWrapperPattern(BearThreatPendingFactPattern("player"))
+        pending_result = metta.run(
+            f"!(match &self {pending_state.to_metta()} {pending_state.to_metta()})"
+        )
+        self.assertEqual(unwrap_first_match(pending_result), pending_state.to_metta())
+
+        cave_lit_state = StateWrapperPattern(CaveLitFactPattern("cave"))
+        cave_lit_result = metta.run(
+            f"!(match &self {cave_lit_state.to_metta()} {cave_lit_state.to_metta()})"
+        )
+        self.assertEqual(unwrap_first_match(cave_lit_result), cave_lit_state.to_metta())
+
+    def test_using_functioning_lantern_places_configured_items_in_cave(self):
+        metta = get_test_metta()
+
+        world = World()
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
+        character = CharacterFactPattern("player", "John")
+        chest = ContainerFactDefinition(key="chest", name="Chest")
+        bone_charm = ItemFactDefinition(
+            key="bone_charm",
+            name="Bone charm",
+            text_pickup="You pick up the bone charm.",
+            text_drop="You drop the bone charm.",
+            text_examine="The charm is carved from old bone and strung on a dark cord.",
+            text_enter="A carved bone charm lies here.",
+            text_look="A carved bone charm rests here.",
+        )
+
+        world.add_definition(ExistsFunctionDefinition())
+        world.add_definition(UseItemFunctionDefinition(character))
+        world.add_definition(chest)
+        world.add_definition(bone_charm)
+        CaveModule(
+            cave_entrance,
+            character,
+            lantern_container=chest,
+            cave_items_to_reveal=[bone_charm],
+        ).apply(world)
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern(character.key, "cave"))
+        )
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern("functioning_lantern", character.key))
+        )
+        metta.run(world.to_metta())
+
+        hidden_item_state = StateWrapperPattern(AtFactPattern("bone_charm", "cave"))
+        hidden_item_state_result = metta.run(
+            f"!(match &self {hidden_item_state.to_metta()} {hidden_item_state.to_metta()})"
+        )
+        self.assertEqual(hidden_item_state_result, [[]])
+
+        metta.run(f"!{UseItemFunctionPattern('functioning_lantern').to_metta()}")
+
+        revealed_item_result = metta.run(
+            f"!(match &self {hidden_item_state.to_metta()} {hidden_item_state.to_metta()})"
+        )
+        self.assertEqual(
+            unwrap_first_match(revealed_item_result), hidden_item_state.to_metta()
         )
 
     def test_using_functioning_lantern_outside_cave_prints_no_use_message(self):
@@ -234,6 +314,47 @@ class TestCaveModule(unittest.TestCase):
             format_metta_output(result),
         )
 
+    def test_entering_cave_before_lighting_shows_darkness_message(self):
+        metta = get_test_metta()
+
+        world = World()
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
+        character = CharacterFactPattern("player", "John")
+
+        world.add_definition(ExistsFunctionDefinition())
+        CaveModule(cave_entrance, character).apply(world)
+        metta.run(world.to_metta())
+
+        result = metta.run(f"!{TriggerFunctionPattern(MoveEventPattern('ridge', 'cave')).to_metta()}")
+
+        self.assertIn(
+            "The cave is pitch dark, and you cannot make out anything ahead.",
+            format_metta_output(result),
+        )
+
+    def test_entering_cave_after_lighting_shows_cave_description(self):
+        metta = get_test_metta()
+
+        world = World()
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
+        character = CharacterFactPattern("player", "John")
+
+        world.add_definition(ExistsFunctionDefinition())
+        CaveModule(cave_entrance, character).apply(world)
+        world.add_definition(StateWrapperDefinition(CaveLitFactPattern("cave")))
+        metta.run(world.to_metta())
+
+        result = metta.run(f"!{TriggerFunctionPattern(MoveEventPattern('ridge', 'cave')).to_metta()}")
+
+        self.assertIn(
+            "The lantern light spills across damp stone walls and old bones scattered across the cave floor.",
+            format_metta_output(result),
+        )
+
     def test_stay_still_prints_message_in_non_cave_location(self):
         metta = get_test_metta()
 
@@ -243,6 +364,7 @@ class TestCaveModule(unittest.TestCase):
         )
         character = CharacterFactPattern("player", "John")
 
+        world.add_definition(ExistsFunctionDefinition())
         CaveModule(cave_entrance, character).apply(world)
         metta.run(world.to_metta())
         metta.run(
@@ -253,7 +375,7 @@ class TestCaveModule(unittest.TestCase):
 
         self.assertIn("You hold still for a moment.", str(result))
 
-    def test_entering_cave_arms_bear_threat_for_next_tick(self):
+    def test_entering_cave_does_not_arm_bear_threat_before_lantern_use(self):
         metta = get_test_metta()
 
         world = World()
@@ -272,7 +394,7 @@ class TestCaveModule(unittest.TestCase):
         pending_result = metta.run(
             f"!(match &self {pending_state.to_metta()} {pending_state.to_metta()})"
         )
-        self.assertEqual(unwrap_first_match(pending_result), pending_state.to_metta())
+        self.assertEqual(pending_result, [[]])
 
     def test_stay_still_clears_bear_threat_and_marks_tick_stale(self):
         metta = get_test_metta()
@@ -283,6 +405,7 @@ class TestCaveModule(unittest.TestCase):
         )
         character = CharacterFactPattern("player", "John")
 
+        world.add_definition(ExistsFunctionDefinition())
         CaveModule(cave_entrance, character).apply(world)
         metta.run(world.to_metta())
         metta.run(
@@ -291,6 +414,7 @@ class TestCaveModule(unittest.TestCase):
         metta.run(
             StateWrapperDefinition(AtFactPattern(character.key, "cave")).to_metta()
         )
+        metta.run(StateWrapperDefinition(AtFactPattern("bear", "cave")).to_metta())
 
         result = metta.run(f"!{StayStillFunctionPattern().to_metta()}")
 
@@ -313,7 +437,53 @@ class TestCaveModule(unittest.TestCase):
 
         stale_tick = StaleWrapperPattern("Tick")
         stale_result = metta.run(f"!(match &self {stale_tick.to_metta()} True)")
-        self.assertEqual(unwrap_first_match(stale_result), "True")
+        self.assertEqual(unwrap_first_match(stale_result), True)
+
+    def test_stay_still_after_bear_threat_shows_revealed_cave_items(self):
+        metta = get_test_metta()
+
+        world = World()
+        cave_entrance = LocationFactDefinition(
+            "ridge", "A narrow ridge of pale stone rises above the glade."
+        )
+        character = CharacterFactPattern("player", "John")
+        bone_charm = ItemFactDefinition(
+            key="bone_charm",
+            name="Bone charm",
+            text_pickup="You pick up the bone charm.",
+            text_drop="You drop the bone charm.",
+            text_examine="The charm is carved from old bone and strung on a dark cord.",
+            text_enter="A carved bone charm lies here.",
+            text_look="A carved bone charm rests here.",
+        )
+
+        world.add_definition(ExistsFunctionDefinition())
+        world.add_definition(bone_charm)
+        CaveModule(
+            cave_entrance,
+            character,
+            cave_items_to_reveal=[bone_charm],
+        ).apply(world)
+        metta.run(world.to_metta())
+        metta.run(
+            StateWrapperDefinition(BearThreatPendingFactPattern("player")).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "cave")).to_metta()
+        )
+        metta.run(StateWrapperDefinition(AtFactPattern("bear", "cave")).to_metta())
+        metta.run(
+            StateWrapperDefinition(AtFactPattern("bone_charm", "cave")).to_metta()
+        )
+
+        result = metta.run(f"!{StayStillFunctionPattern().to_metta()}")
+        output = format_metta_output(result)
+
+        self.assertIn(
+            "You remain perfectly still until the bear goes away. You are safe for now.",
+            output,
+        )
+        self.assertIn("A carved bone charm lies here.", output)
 
     def test_moving_without_staying_still_prints_death_message(self):
         metta = get_test_metta()

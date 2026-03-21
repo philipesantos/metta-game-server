@@ -31,6 +31,9 @@ from modules.cave.side_effects.cave_module_on_bear_threat_resolve_stay_still imp
 from modules.cave.side_effects.cave_module_on_stay_still_update_tick import (
     CaveModuleOnStayStillUpdateTick,
 )
+from modules.cave.side_effects.cave_module_on_enter_cave_describe import (
+    CaveModuleOnEnterCaveDescribe,
+)
 from modules.cave.side_effects.cave_module_on_use_functioning_lantern import (
     CaveModuleOnUseFunctioningLantern,
 )
@@ -43,16 +46,15 @@ class CaveModule(Module):
         cave_entrance_location: LocationFactDefinition,
         character: CharacterFactPattern,
         lantern_container: ContainerFactDefinition | None = None,
+        cave_items_to_reveal: list[ItemFactDefinition] | None = None,
     ):
         self.cave_entrance_location = cave_entrance_location
         self.character = character
         self.lantern_container = lantern_container
+        self.cave_items_to_reveal = cave_items_to_reveal or []
         self.cave_location = LocationFactDefinition(
             key="cave",
-            text_move_to=(
-                "A cold cave opens into darkness, its stone walls swallowing what "
-                "little light enters."
-            ),
+            text_move_to="",
         )
         self.bear = CharacterFactDefinition(
             key="bear",
@@ -115,11 +117,20 @@ class CaveModule(Module):
             TriggerFunctionDefinition(
                 StayStillEventPattern("$where"),
                 [
-                    CaveModuleOnBearThreatResolveStayStill(
-                        self.character, self.bear.key, self.cave_location.key
-                    ),
                     CaveModuleOnStayStillUpdateTick(),
+                    CaveModuleOnBearThreatResolveStayStill(
+                        self.character,
+                        self.bear.key,
+                        self.cave_location.key,
+                        self.cave_items_to_reveal,
+                    ),
                 ],
+            )
+        )
+        world.add_definition(
+            TriggerFunctionDefinition(
+                MoveEventPattern("$from", self.cave_location.key),
+                [CaveModuleOnEnterCaveDescribe(self.cave_location.key)],
             )
         )
         world.add_definition(
@@ -141,9 +152,6 @@ class CaveModule(Module):
         world.add_definition(self.cave_location)
         world.add_definition(self.bear)
         world.add_definition(self.boulder)
-        world.add_definition(
-            StateWrapperDefinition(AtFactPattern(self.bear.key, self.cave_location.key))
-        )
         world.add_definition(
             StateWrapperDefinition(
                 AtFactPattern(self.boulder.key, self.cave_entrance_location.key)
@@ -184,7 +192,10 @@ class CaveModule(Module):
                 UseItemEventPattern(self.functioning_lantern.key),
                 [
                     CaveModuleOnUseFunctioningLantern(
-                        self.character, self.cave_location.key
+                        self.character,
+                        self.cave_location.key,
+                        self.bear.key,
+                        self.cave_items_to_reveal,
                     )
                 ],
             )
