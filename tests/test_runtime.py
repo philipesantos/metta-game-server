@@ -1,0 +1,247 @@
+import unittest
+from unittest.mock import patch
+
+from core.nlp.command_catalog import CommandEntry
+from core.patterns.functions.synchronize_tick_function_pattern import (
+    SynchronizeTickFunctionPattern,
+)
+from core.runtime import GameSession
+
+
+class FakeWorld:
+    def to_metta(self) -> str:
+        return "WORLD"
+
+
+class FakeEmbeddingIndex:
+    next_match = None
+
+    def __init__(self, entries, *args, **kwargs):
+        self.entries = entries
+        self.updated_entries = None
+
+    def update_entries(self, entries):
+        self.updated_entries = entries
+        self.entries = entries
+
+    def match(self, query):
+        return self.__class__.next_match
+
+
+class FakeAtom:
+    def __init__(self, name: str):
+        self.name = name
+
+    def get_name(self):
+        return self.name
+
+
+class FakeMatchResult:
+    def __init__(self, entry, score: float):
+        self.entry = entry
+        self.score = score
+
+
+class FakeMetta:
+    def __init__(
+        self,
+        *,
+        win_message: str | None = None,
+        game_over_message: str | None = None,
+        responses: dict[str, object] | None = None,
+    ):
+        self.win_message = win_message
+        self.game_over_message = game_over_message
+        self.responses = responses or {}
+        self.calls: list[str] = []
+
+    def run(self, query: str):
+        self.calls.append(query)
+        if "(GameWon $reason)" in query:
+            if self.win_message is None:
+                return [[]]
+            return [[FakeAtom(self.win_message)]]
+        if "(GameOver $reason)" in query:
+            if self.game_over_message is None:
+                return [[]]
+            return [[FakeAtom(self.game_over_message)]]
+        return self.responses.get(query, [[]])
+
+
+class TestGameSession(unittest.TestCase):
+    def setUp(self):
+        FakeEmbeddingIndex.next_match = None
+
+    @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
+    @patch("core.runtime.build_command_catalog")
+    def test_processes_natural_language_command(self, mock_catalog, _format_output):
+        entry = CommandEntry(
+            utterance="look around",
+            intent="look",
+            metta="look",
+            slots={},
+        )
+        mock_catalog.return_value = [entry]
+        FakeEmbeddingIndex.next_match = FakeMatchResult(entry=entry, score=0.91)
+        sync_query = f"!{SynchronizeTickFunctionPattern().to_metta()}"
+        metta = FakeMetta(
+            responses={
+                "WORLD": [[]],
+                "!look": [["look-result"]],
+                sync_query: [["tick-result"]],
+            }
+        )
+
+        session = GameSession(
+            metta_factory=lambda: metta,
+            world_builder=lambda: FakeWorld(),
+            embedding_index_cls=FakeEmbeddingIndex,
+        )
+
+        result = session.process_command("look around")
+
+        self.assertTrue(result.ok)
+        self.assertEqual(result.command_type, "natural_language")
+        self.assertEqual(result.metta_query, "!look")
+        self.assertEqual(result.matched_utterance, "look around")
+        self.assertEqual(result.matched_metta, "look")
+        self.assertEqual(result.match_score, 0.91)
+        self.assertEqual(result.output, "[['look-result']]")
+        self.assertEqual(result.tick_output, "[['tick-result']]")
+        self.assertEqual(len(result.queries), 2)
+        self.assertEqual(result.queries[0].command_type, "natural_language")
+        self.assertEqual(result.queries[0].original_input, "look around")
+        self.assertEqual(result.queries[0].matched_metta, "!look")
+        self.assertEqual(result.queries[0].original_responses, ("look-result",))
+        self.assertEqual(result.queries[0].responses, ("[['look-result']]",))
+        self.assertEqual(result.queries[1].command_type, "metta")
+        self.assertEqual(result.queries[1].original_input, sync_query)
+        self.assertEqual(result.queries[1].matched_metta, sync_query)
+        self.assertEqual(result.queries[1].original_responses, ("tick-result",))
+        self.assertEqual(result.queries[1].responses, ("[['tick-result']]",))
+        self.assertIsNone(result.end_state_event)
+        self.assertIn("!look", metta.calls)
+        self.assertIn(sync_query, metta.calls)
+        self.assertGreaterEqual(mock_catalog.call_count, 2)
+
+    @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
+    @patch("core.runtime.build_command_catalog", return_value=[])
+    def test_processes_explicit_metta_command(self, _catalog, _format_output):
+        sync_query = f"!{SynchronizeTickFunctionPattern().to_metta()}"
+        metta = FakeMetta(
+            responses={
+                "WORLD": [[]],
+                "!(move north)": [["move-result"]],
+                sync_query: [["tick-result"]],
+            }
+        )
+
+        session = GameSession(
+            metta_factory=lambda: metta,
+            world_builder=lambda: FakeWorld(),
+            embedding_index_cls=FakeEmbeddingIndex,
+        )
+
+        result = session.process_command("!(move north)", command_type="metta")
+
+        self.assertTrue(result.ok)
+        self.assertEqual(result.command_type, "metta")
+        self.assertEqual(result.metta_query, "!(move north)")
+        self.assertEqual(result.output, "[['move-result']]")
+        self.assertEqual(result.tick_output, "[['tick-result']]")
+        self.assertEqual(result.queries[0].matched_metta, "!(move north)")
+        self.assertEqual(result.queries[0].original_responses, ("move-result",))
+        self.assertEqual(result.queries[1].matched_metta, sync_query)
+        self.assertEqual(result.queries[1].original_responses, ("tick-result",))
+        self.assertIsNone(result.end_state_event)
+        self.assertIsNone(result.matched_metta)
+
+    @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
+    @patch("core.runtime.build_command_catalog", return_value=[])
+    def test_does_not_execute_actions_after_game_is_won(self, _catalog, _format_output):
+        metta = FakeMetta(win_message="You escaped.", responses={"WORLD": [[]]})
+
+        session = GameSession(
+            metta_factory=lambda: metta,
+            world_builder=lambda: FakeWorld(),
+            embedding_index_cls=FakeEmbeddingIndex,
+        )
+
+        result = session.process_command("use battery on plane")
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.end_state_event, "game_won")
+        self.assertEqual(result.output, "You escaped.")
+        self.assertEqual(result.error, "The game has already ended.")
+        self.assertEqual(len(result.queries), 1)
+        self.assertEqual(result.queries[0].matched_metta, None)
+        self.assertEqual(result.queries[0].original_responses, ())
+        self.assertEqual(result.queries[0].responses, ("You escaped.",))
+        self.assertNotIn("!use (battery plane)", metta.calls)
+
+    @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
+    @patch("core.runtime.build_command_catalog", return_value=[])
+    def test_marks_game_over_when_tick_sync_ends_the_game(self, _catalog, _format_output):
+        sync_query = f"!{SynchronizeTickFunctionPattern().to_metta()}"
+        metta = FakeMetta(
+            game_over_message="You died.",
+            responses={
+                "WORLD": [[]],
+                "!look": [["look-result"]],
+                sync_query: [["tick-result"]],
+            },
+        )
+
+        with patch.object(
+            FakeMetta,
+            "run",
+            side_effect=[
+                [[]],  # WORLD
+                [[]],  # startup
+                [[]],  # startup GameWon
+                [[]],  # startup GameOver
+                [[]],  # pre-command GameWon
+                [[]],  # pre-command GameOver
+                [["look-result"]],  # !look
+                [[]],  # post-command GameWon
+                [[]],  # post-command GameOver
+                [["tick-result"]],  # sync
+                [[]],  # post-tick GameWon
+                [[FakeAtom("You died.")]],  # post-tick GameOver
+            ],
+        ) as _:
+            session = GameSession(
+                metta_factory=lambda: metta,
+                world_builder=lambda: FakeWorld(),
+                embedding_index_cls=FakeEmbeddingIndex,
+            )
+            FakeEmbeddingIndex.next_match = FakeMatchResult(
+                entry=CommandEntry(
+                    utterance="look around",
+                    intent="look",
+                    metta="look",
+                    slots={},
+                ),
+                score=0.91,
+            )
+            result = session.process_command("look around")
+
+        self.assertEqual(result.end_state_event, "game_over")
+        self.assertEqual(result.end_state_message, "You died.")
+        self.assertEqual(result.queries[1].original_responses, ("tick-result",))
+        self.assertEqual(
+            result.queries[1].responses,
+            ("[['tick-result']]", "You died."),
+        )
+
+    @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
+    @patch("core.runtime.build_command_catalog", return_value=[])
+    def test_rejects_unknown_command_type(self, _catalog, _format_output):
+        session = GameSession(
+            metta_factory=lambda: FakeMetta(responses={"WORLD": [[]]}),
+            world_builder=lambda: FakeWorld(),
+            embedding_index_cls=FakeEmbeddingIndex,
+        )
+
+        with self.assertRaises(ValueError):
+            session.process_command("look around", command_type="voice")

@@ -1,5 +1,6 @@
 import unittest
 
+from core.definitions.facts.route_block_fact_definition import RouteBlockFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.definitions.functions.exists_function_definition import (
     ExistsFunctionDefinition,
@@ -91,6 +92,70 @@ class TestCompassModuleOnMovePrintDirections(unittest.TestCase):
         result = metta.run(f"!{trigger.to_metta()}")
 
         self.assertEqual(result, [[]])
+
+    def test_hides_blocked_route_descriptions(self):
+        metta = get_test_metta()
+
+        character = CharacterFactPattern("player", "John")
+
+        self._register_compass_trigger(metta, character)
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "ridge")).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern("compass", character.key)).to_metta()
+        )
+        metta.run(
+            RouteFactDefinition("ridge", "north", "cave").to_metta()
+        )
+        metta.run(
+            RouteFactDefinition("ridge", "south", "glade").to_metta()
+        )
+        metta.run(
+            RouteFactDefinition(
+                "cave",
+                "south",
+                "ridge",
+                "To the south, the path returns to the ridge.",
+            ).to_metta()
+        )
+        metta.run(
+            RouteFactDefinition(
+                "ridge",
+                "north",
+                "cave",
+                "To the north, the cave mouth opens beyond a giant boulder.",
+            ).to_metta()
+        )
+        metta.run(
+            RouteFactDefinition(
+                "ridge",
+                "south",
+                "glade",
+                "To the south, the trail slopes back toward the glade.",
+            ).to_metta()
+        )
+        metta.run(
+            RouteBlockFactDefinition(
+                "ridge",
+                "cave",
+                "A huge rock blocks the cave entrance.",
+            ).to_metta()
+        )
+
+        trigger = TriggerFunctionPattern(MoveEventPattern("glade", "ridge"))
+        result = metta.run(f"!{trigger.to_metta()}")
+        output_lines = format_metta_output(result).splitlines()
+
+        self.assertNotIn(
+            "To the north, the cave mouth opens beyond a giant boulder.",
+            output_lines,
+        )
+        self.assertIn(
+            "To the south, the trail slopes back toward the glade.",
+            output_lines,
+        )
+        self.assertEqual(len(output_lines), 1)
 
 
 if __name__ == "__main__":

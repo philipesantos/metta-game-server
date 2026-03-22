@@ -21,9 +21,6 @@ from modules.compass.side_effects.compass_module_on_move_print_directions import
 from modules.compass.side_effects.compass_module_on_pickup_print_directions import (
     CompassModuleOnPickupPrintDirections,
 )
-from modules.compass.side_effects.compass_module_on_pickup_remove_route_blocks import (
-    CompassModuleOnPickupRemoveRouteBlocks,
-)
 from modules.module import Module
 
 
@@ -80,8 +77,10 @@ class CompassModule(Module):
             TriggerFunctionDefinition(
                 PickUpEventPattern(item_compass.key, "$where"),
                 [
-                    CompassModuleOnPickupPrintDirections(self.character),
-                    CompassModuleOnPickupRemoveRouteBlocks(self.initial_location.key),
+                    CompassModuleOnPickupPrintDirections(
+                        self.character,
+                        unblock_location_from=self.initial_location.key,
+                    ),
                 ],
             )
         )

@@ -1,5 +1,6 @@
 import unittest
 
+from core.definitions.facts.route_block_fact_definition import RouteBlockFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.definitions.functions.trigger_function_definition import (
     TriggerFunctionDefinition,
@@ -41,6 +42,65 @@ class TestCompassModuleOnPickupPrintDirections(unittest.TestCase):
                 "north",
                 "cave",
                 "To the north, a narrow trail rises toward the cave.",
+            ).to_metta()
+        )
+
+        trigger = TriggerFunctionPattern(PickUpEventPattern("compass", "glade"))
+        result = metta.run(f"!{trigger.to_metta()}")
+        output_lines = format_metta_output(result).splitlines()
+
+        self.assertEqual(
+            output_lines,
+            ["To the north, a narrow trail rises toward the cave."],
+        )
+
+    def test_pickup_removes_route_blocks_before_printing_directions(self):
+        metta = get_test_metta()
+
+        character = CharacterFactPattern("player", "John")
+
+        metta.run(CompassDirectionsFunctionDefinition().to_metta())
+        metta.run(
+            TriggerFunctionDefinition(
+                PickUpEventPattern("compass", "$where"),
+                [
+                    CompassModuleOnPickupPrintDirections(
+                        character,
+                        unblock_location_from="glade",
+                    )
+                ],
+            ).to_metta()
+        )
+        metta.run(
+            StateWrapperDefinition(AtFactPattern(character.key, "glade")).to_metta()
+        )
+        metta.run(
+            RouteFactDefinition(
+                "glade",
+                "north",
+                "cave",
+                "To the north, a narrow trail rises toward the cave.",
+            ).to_metta()
+        )
+        metta.run(
+            RouteBlockFactDefinition(
+                "glade",
+                "cave",
+                "You hesitate. This isn’t a place to wander blindly.",
+            ).to_metta()
+        )
+        metta.run(
+            RouteBlockFactDefinition(
+                "glade",
+                "beach",
+                "You hesitate. This isn’t a place to wander blindly.",
+            ).to_metta()
+        )
+        metta.run(
+            RouteBlockFactDefinition(
+                "glade",
+                "ridge",
+                "You hesitate. This isn’t a place to wander blindly.",
             ).to_metta()
         )
 

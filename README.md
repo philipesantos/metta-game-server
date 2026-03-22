@@ -28,13 +28,145 @@ The game includes a built-in console where players can observe all actions taken
 ```sh
 # Clone the repository
 git clone https://github.com/fluidity-labs/metta-rift-server.git
-cd core-rift-server
+cd metta-rift-server
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run
+# Run in CLI mode
 python main.py
+
+# Run in websocket mode
+METTA_RIFT_INPUT_MODE=websocket python main.py
+```
+
+## Input Modes
+
+Choose the active input transport at startup with `METTA_RIFT_INPUT_MODE`:
+
+- `cli` (default): reads commands from stdin.
+- `websocket`: starts a websocket server and accepts commands from a web client.
+
+Optional websocket settings:
+
+- `METTA_RIFT_WEBSOCKET_HOST` defaults to `127.0.0.1`
+- `METTA_RIFT_WEBSOCKET_PORT` defaults to `8765`
+
+## Websocket Messages
+
+When `METTA_RIFT_INPUT_MODE=websocket`, the server accepts JSON messages only.
+
+Request:
+
+```json
+{
+  "command": "look around",
+  "command_type": "natural_language"
+}
+```
+
+Supported `command_type` values:
+
+- `natural_language`
+- `metta`
+
+Examples:
+
+```json
+{
+  "command": "pick up lantern",
+  "command_type": "natural_language"
+}
+```
+
+```json
+{
+  "command": "!(move player north)",
+  "command_type": "metta"
+}
+```
+
+Startup event:
+
+```json
+{
+  "event": "startup"
+}
+```
+
+If the startup trigger produces messages, they are sent immediately after the `startup`
+event as a normal `command_result`:
+
+```json
+{
+  "event": "command_result",
+  "queries": [
+    {
+      "command_type": "metta",
+      "original_input": "!(trigger (Startup))",
+      "matched_metta": "!(trigger (Startup))",
+      "original_responses": [
+        "(Response 100 \"You are in a cabin.\")"
+      ],
+      "responses": [
+        "You are in a cabin."
+      ]
+    }
+  ]
+}
+```
+
+Command response:
+
+```json
+{
+  "event": "command_result",
+  "queries": [
+    {
+      "command_type": "natural_language",
+      "original_input": "look around",
+      "matched_metta": "!look",
+      "original_responses": [
+        "(Response 5 \"You are in a cabin.\")"
+      ],
+      "responses": [
+        "You are in a cabin."
+      ]
+    },
+    {
+      "command_type": "metta",
+      "original_input": "!(synchronize-tick)",
+      "matched_metta": "!(synchronize-tick)",
+      "original_responses": [],
+      "responses": []
+    }
+  ]
+}
+```
+
+Error event:
+
+```json
+{
+  "event": "error",
+  "error": "..."
+}
+```
+
+Game won event:
+
+```json
+{
+  "event": "game_won"
+}
+```
+
+Game over event:
+
+```json
+{
+  "event": "game_over"
+}
 ```
 
 ## Tech Stack
@@ -46,5 +178,3 @@ python main.py
 ## License
 
 This project is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for details.
-
-

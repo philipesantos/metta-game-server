@@ -16,6 +16,21 @@ from utils.response import format_metta_output
 
 
 class TestWorldBuilder(unittest.TestCase):
+    def test_runes_are_not_forced_into_glade(self):
+        world = build_world()
+        rune_keys = {"epsilon_rune", "gamma_rune", "omicron_rune"}
+        rune_locations = {
+            definition.pattern.what: definition.pattern.where
+            for definition in world.definitions
+            if isinstance(definition, StateWrapperDefinition)
+            and isinstance(definition.pattern, AtFactPattern)
+            and definition.pattern.what in rune_keys
+        }
+
+        self.assertEqual(set(rune_locations.keys()), rune_keys)
+        self.assertNotEqual(set(rune_locations.values()), {"glade"})
+        self.assertTrue(all(location != "glade" for location in rune_locations.values()))
+
     def test_chest_items_are_defined_once(self):
         world = build_world()
         item_keys = [

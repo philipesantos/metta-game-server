@@ -12,20 +12,12 @@ class FakeAtom:
         return self.name
 
 
-class FakeWorld:
-    def to_metta(self) -> str:
-        return "WORLD"
-
-
-class FakeEmbeddingIndex:
-    def __init__(self, *args, **kwargs):
-        pass
-
-    def update_entries(self, entries):
-        pass
-
-    def match(self, query):
-        return None
+class FakeSession:
+    metta_code = "WORLD"
+    world_load_output = [[]]
+    command_catalog = []
+    startup_output = ""
+    startup_result = None
 
 
 class FakeMetta:
@@ -72,35 +64,42 @@ class TestMain(unittest.TestCase):
         self.assertIn("(GameWon $reason)", metta.calls[0])
         self.assertIn("(GameOver $reason)", metta.calls[1])
 
-    @patch("builtins.input", side_effect=["use battery on plane", "exit"])
-    @patch("builtins.print")
-    @patch("main.format_metta_output", return_value="")
-    @patch("main.EmbeddingIndex", FakeEmbeddingIndex)
-    @patch("main.build_command_catalog", return_value=[])
-    @patch("main.build_world", return_value=FakeWorld())
-    def test_main_does_not_execute_actions_after_game_is_won(
-        self,
-        _build_world,
-        _build_command_catalog,
-        _format_metta_output,
-        mock_print,
-        _input,
-    ):
-        metta = FakeMetta(win_message="You escaped.")
+    @patch.dict("os.environ", {}, clear=True)
+    def test_input_mode_defaults_to_cli(self):
+        self.assertEqual(main._input_mode(), "cli")
 
-        with patch("main.MeTTa", return_value=metta):
+    @patch.dict("os.environ", {main.INPUT_MODE_ENV_VAR: "websocket"})
+    def test_input_mode_reads_websocket_env(self):
+        self.assertEqual(main._input_mode(), "websocket")
+
+    @patch("main._run_cli")
+    @patch("main._run_websocket")
+    @patch("main._print_startup")
+    def test_main_runs_cli_mode(self, mock_print_startup, mock_run_websocket, mock_run_cli):
+        session = FakeSession()
+
+        with patch("main.GameSession", return_value=session):
             main.main()
 
-        self.assertIn(
-            "You escaped.", [call.args[0] for call in mock_print.call_args_list]
-        )
-        self.assertNotIn("!use (battery plane)", metta.calls)
-        self.assertFalse(
-            any(
-                "[NL] use battery on plane" in str(call.args[0])
-                for call in mock_print.call_args_list
-            )
-        )
+        mock_print_startup.assert_called_once_with(session)
+        mock_run_cli.assert_called_once_with(session)
+        mock_run_websocket.assert_not_called()
+
+    @patch.dict("os.environ", {main.INPUT_MODE_ENV_VAR: "websocket"})
+    @patch("main._run_cli")
+    @patch("main._run_websocket")
+    @patch("main._print_startup")
+    def test_main_runs_websocket_mode(
+        self, mock_print_startup, mock_run_websocket, mock_run_cli
+    ):
+        session = FakeSession()
+
+        with patch("main.GameSession", return_value=session):
+            main.main()
+
+        mock_print_startup.assert_called_once_with(session)
+        mock_run_websocket.assert_called_once_with(session)
+        mock_run_cli.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,11 @@
 import unittest
 
-from utils.response import format_metta_output, parse_response_atom, ResponseText
+from utils.response import (
+    ResponseText,
+    collect_raw_metta_output,
+    format_metta_output,
+    parse_response_atom,
+)
 
 
 class _FakeObj:
@@ -31,6 +36,14 @@ class _StringOnlyResponseAtom:
 
     def __str__(self):
         return '(Response 60 "You can go: north, east")'
+
+
+class _StringOnlyEmptyAtom:
+    def get_children(self):
+        return []
+
+    def __str__(self):
+        return "Empty"
 
 
 class TestResponseParser(unittest.TestCase):
@@ -76,6 +89,22 @@ class TestResponseParser(unittest.TestCase):
     def test_format_metta_output_falls_back_to_string_parsing_for_atoms(self):
         output = [[_StringOnlyResponseAtom()]]
         self.assertEqual(format_metta_output(output), "You can go: north, east")
+
+    def test_format_metta_output_suppresses_empty_metta_results(self):
+        self.assertEqual(format_metta_output([[]]), "")
+        self.assertEqual(format_metta_output([]), "")
+        self.assertEqual(format_metta_output("[[]]"), "")
+
+    def test_collect_raw_metta_output_returns_unparsed_response_atoms(self):
+        output = [[_StringOnlyResponseAtom()]]
+        self.assertEqual(
+            collect_raw_metta_output(output),
+            ('(Response 60 "You can go: north, east")',),
+        )
+
+    def test_collect_raw_metta_output_suppresses_empty_results(self):
+        self.assertEqual(collect_raw_metta_output([[]]), ())
+        self.assertEqual(collect_raw_metta_output([[_StringOnlyEmptyAtom()]]), ())
 
 
 if __name__ == "__main__":

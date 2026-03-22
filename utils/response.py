@@ -197,7 +197,43 @@ def _split_first_token(text: str) -> tuple[str, str]:
     return text[start:index], text[index:].strip()
 
 
+def _is_empty_metta_output(output: Any) -> bool:
+    if output is None:
+        return True
+    if isinstance(output, str):
+        return output.strip() in {"", "[]", "[[]]"}
+    if isinstance(output, list):
+        return not output or all(_is_empty_metta_output(item) for item in output)
+    return False
+
+
+def _is_empty_raw_value(raw: str) -> bool:
+    return raw in {"", "[]", "[[]]", "Empty", "(Empty)", "()", "{}"}
+
+
+def collect_raw_metta_output(output: Any) -> tuple[str, ...]:
+    if _is_empty_metta_output(output):
+        return ()
+
+    if isinstance(output, str):
+        atoms = _find_response_atoms(output)
+        if atoms:
+            return tuple(atom for atom in atoms if atom.strip())
+        stripped = output.strip()
+        return (stripped,) if not _is_empty_raw_value(stripped) else ()
+
+    raw_values: list[str] = []
+    for atom in _iter_metta_atoms(output):
+        raw = str(atom).strip()
+        if not _is_empty_raw_value(raw):
+            raw_values.append(raw)
+    return tuple(raw_values)
+
+
 def format_metta_output(output: Any) -> str:
+    if _is_empty_metta_output(output):
+        return ""
+
     if isinstance(output, str):
         atoms = _find_response_atoms(output)
         if not atoms:

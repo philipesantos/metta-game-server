@@ -5,13 +5,16 @@ from core.definitions.facts.item_fact_definition import ItemFactDefinition
 from core.definitions.facts.location_fact_definition import LocationFactDefinition
 from core.definitions.facts.route_fact_definition import RouteFactDefinition
 from core.definitions.wrappers.state_wrapper_definition import StateWrapperDefinition
+from core.patterns.events.pickup_event_pattern import PickUpEventPattern
 from core.patterns.facts.at_fact_pattern import AtFactPattern
 from core.patterns.facts.character_fact_pattern import CharacterFactPattern
 from core.patterns.facts.route_block_fact_pattern import RouteBlockFactPattern
+from core.patterns.functions.trigger_function_pattern import TriggerFunctionPattern
 from core.world import World
 from modules.compass.compass_module import CompassModule
 from tests.utils.metta import get_test_metta
 from tests.utils.utils import unwrap_first_match
+from utils.response import format_metta_output
 
 
 class TestCompassModule(unittest.TestCase):
@@ -96,6 +99,38 @@ class TestCompassModule(unittest.TestCase):
             f"!(match &self {cave_to_plane.to_metta()} {cave_to_plane.to_metta()})"
         )
         self.assertEqual(result_cave_to_plane, [[]])
+
+    def test_pickup_compass_prints_directions_after_unblocking_routes(self):
+        metta = get_test_metta()
+
+        world = World()
+        world.add_definition(RouteFactDefinition("glade", "north", "cave"))
+        world.add_definition(
+            RouteFactDefinition(
+                "glade",
+                "south",
+                "beach",
+                "To the south, a sandy path leads toward the beach.",
+            )
+        )
+        world.add_definition(
+            StateWrapperDefinition(AtFactPattern("player", "glade"))
+        )
+
+        CompassModule(
+            CharacterFactPattern("player", "John"),
+            LocationFactDefinition("glade", "A quiet glade."),
+        ).apply(world)
+        metta.run(world.to_metta())
+
+        pickup_trigger = TriggerFunctionPattern(PickUpEventPattern("compass", "satchel"))
+        result = metta.run(f"!{pickup_trigger.to_metta()}")
+        output_lines = format_metta_output(result).splitlines()
+
+        self.assertIn(
+            "To the south, a sandy path leads toward the beach.",
+            output_lines,
+        )
 
 
 if __name__ == "__main__":
