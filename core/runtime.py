@@ -70,6 +70,32 @@ def end_state_message(metta) -> str | None:
     return message
 
 
+def _move_summary(move_count: int) -> str:
+    noun = "move" if move_count == 1 else "moves"
+    return f"You won in {move_count} {noun}."
+
+
+def _game_over_summary(move_count: int) -> str:
+    noun = "move" if move_count == 1 else "moves"
+    return f"Game over in {move_count} {noun}."
+
+
+def _decorate_end_state_message(
+    event_name: str | None, message: str | None, move_count: int
+) -> str | None:
+    if message is None:
+        return None
+    if event_name == "game_won":
+        summary = _move_summary(move_count)
+    elif event_name == "game_over":
+        summary = _game_over_summary(move_count)
+    else:
+        return message
+    if message == summary or message.endswith(summary):
+        return message
+    return f"{message}\n{summary}"
+
+
 @dataclass(frozen=True)
 class QueryExecution:
     command_type: str
@@ -137,6 +163,7 @@ class GameSession:
             min_margin=min_margin,
             high_confidence_score=high_confidence_score,
         )
+        self.move_count = 0
         self.startup_query = (
             f"!{TriggerFunctionPattern(StartupEventPattern()).to_metta()}"
         )
@@ -144,7 +171,11 @@ class GameSession:
         self.startup_output = format_metta_output(startup_raw_output)
         startup_end_state = end_state(self.metta)
         startup_event = startup_end_state[0] if startup_end_state else None
-        startup_message = startup_end_state[1] if startup_end_state else None
+        startup_message = _decorate_end_state_message(
+            startup_event,
+            startup_end_state[1] if startup_end_state else None,
+            self.move_count,
+        )
         startup_responses = _append_unique_message(
             _output_lines(self.startup_output), startup_message
         )
@@ -253,12 +284,18 @@ class GameSession:
                 matched_metta = match.entry.metta
                 match_score = match.score
 
+            self.move_count += 1
             result_output = self.metta.run(metta_query)
             raw_result_output = collect_raw_metta_output(result_output)
             formatted_output = format_metta_output(result_output)
             finished_state = end_state(self.metta)
             if finished_state is not None:
-                finished_event, finished_message = finished_state
+                finished_event = finished_state[0]
+                finished_message = _decorate_end_state_message(
+                    finished_event,
+                    finished_state[1],
+                    self.move_count,
+                )
                 query_outputs = _append_unique_message(
                     _output_lines(formatted_output), finished_message
                 )
@@ -290,7 +327,11 @@ class GameSession:
             formatted_tick_output = format_metta_output(tick_output)
             post_tick_state = end_state(self.metta)
             post_tick_event = post_tick_state[0] if post_tick_state else None
-            post_tick_message = post_tick_state[1] if post_tick_state else None
+            post_tick_message = _decorate_end_state_message(
+                post_tick_event,
+                post_tick_state[1] if post_tick_state else None,
+                self.move_count,
+            )
             tick_responses = _append_unique_message(
                 _output_lines(formatted_tick_output), post_tick_message
             )

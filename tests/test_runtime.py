@@ -49,23 +49,31 @@ class FakeMetta:
         win_message: str | None = None,
         game_over_message: str | None = None,
         responses: dict[str, object] | None = None,
+        win_after_queries: set[str] | None = None,
     ):
         self.win_message = win_message
         self.game_over_message = game_over_message
         self.responses = responses or {}
+        self.win_after_queries = win_after_queries or set()
         self.calls: list[str] = []
+        self._pending_win = False
 
     def run(self, query: str):
         self.calls.append(query)
         if "(GameWon $reason)" in query:
             if self.win_message is None:
                 return [[]]
+            if self.win_after_queries and not self._pending_win:
+                return [[]]
             return [[FakeAtom(self.win_message)]]
         if "(GameOver $reason)" in query:
             if self.game_over_message is None:
                 return [[]]
             return [[FakeAtom(self.game_over_message)]]
-        return self.responses.get(query, [[]])
+        result = self.responses.get(query, [[]])
+        if query in self.win_after_queries:
+            self._pending_win = True
+        return result
 
 
 class TestGameSession(unittest.TestCase):
@@ -227,11 +235,11 @@ class TestGameSession(unittest.TestCase):
             result = session.process_command("look around")
 
         self.assertEqual(result.end_state_event, "game_over")
-        self.assertEqual(result.end_state_message, "You died.")
+        self.assertEqual(result.end_state_message, "You died.\nGame over in 1 move.")
         self.assertEqual(result.queries[1].original_responses, ("tick-result",))
         self.assertEqual(
             result.queries[1].responses,
-            ("[['tick-result']]", "You died."),
+            ("[['tick-result']]", "You died.\nGame over in 1 move."),
         )
 
     @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
@@ -245,3 +253,43 @@ class TestGameSession(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             session.process_command("look around", command_type="voice")
+
+    @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
+    @patch("core.runtime.build_command_catalog")
+    def test_appends_move_count_to_win_message(self, mock_catalog, _format_output):
+        entry = CommandEntry(
+            utterance="look around",
+            intent="look",
+            metta="look",
+            slots={},
+        )
+        mock_catalog.return_value = [entry]
+        FakeEmbeddingIndex.next_match = FakeMatchResult(entry=entry, score=0.91)
+        sync_query = f"!{SynchronizeTickFunctionPattern().to_metta()}"
+        metta = FakeMetta(
+            win_message="You escaped.",
+            responses={
+                "WORLD": [[]],
+                "!(wait)": [["wait-result"]],
+                "!look": [["look-result"]],
+                sync_query: [["tick-result"]],
+            },
+            win_after_queries={"!look"},
+        )
+
+        session = GameSession(
+            metta_factory=lambda: metta,
+            world_builder=lambda: FakeWorld(),
+            embedding_index_cls=FakeEmbeddingIndex,
+        )
+
+        first = session.process_command("!(wait)", command_type="metta")
+        second = session.process_command("look around")
+
+        self.assertIsNone(first.end_state_event)
+        self.assertEqual(second.end_state_event, "game_won")
+        self.assertEqual(second.end_state_message, "You escaped.\nYou won in 2 moves.")
+        self.assertEqual(
+            second.queries[0].responses,
+            ("[['look-result']]", "You escaped.\nYou won in 2 moves."),
+        )
