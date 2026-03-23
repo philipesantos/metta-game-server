@@ -1,6 +1,7 @@
 import asyncio
 import json
 from json import JSONDecodeError
+from typing import Callable
 
 from core.runtime import CommandResult, GameSession
 
@@ -56,10 +57,11 @@ def serialize_command_result(result: CommandResult) -> str:
     )
 
 
-def serialize_startup_event() -> str:
+def serialize_startup_event(metta_code: str) -> str:
     return json.dumps(
         {
             "event": "startup",
+            "metta_code": metta_code,
         }
     )
 
@@ -73,7 +75,10 @@ def serialize_terminal_event(event_name: str) -> str:
 
 
 async def run_websocket_server(
-    session: GameSession, *, host: str = "127.0.0.1", port: int = 8765
+    session_factory: Callable[[], GameSession] = GameSession,
+    *,
+    host: str = "127.0.0.1",
+    port: int = 8765,
 ) -> None:
     try:
         import websockets
@@ -83,7 +88,8 @@ async def run_websocket_server(
         ) from exc
 
     async def handle_connection(websocket):
-        await websocket.send(serialize_startup_event())
+        session = session_factory()
+        await websocket.send(serialize_startup_event(session.metta_code))
         if session.startup_result.queries and session.startup_result.queries[0].responses:
             await websocket.send(serialize_command_result(session.startup_result))
         if session.startup_result.end_state_event and session.startup_result.end_state_message:

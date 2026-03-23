@@ -15,6 +15,9 @@ from core.patterns.facts.character_fact_pattern import CharacterFactPattern
 from core.world import World
 from modules.cave.cave_entrance_block import CaveEntranceBlock
 from modules.module import Module
+from modules.statues.functions.statues_helpers_function_definition import (
+    StatuesHelpersFunctionDefinition,
+)
 from modules.statues.side_effects.statues_module_on_use_rune_on_statue import (
     StatuesModuleOnUseRuneOnStatue,
 )
@@ -53,6 +56,7 @@ class StatuesModule(Module):
                 [OnEventPrint(statues_enter_text, 20)],
             )
         )
+        world.add_definition(StatuesHelpersFunctionDefinition())
 
         lion_statue = ItemFactDefinition(
             key="lion_statue",

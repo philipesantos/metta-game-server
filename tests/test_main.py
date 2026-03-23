@@ -92,13 +92,12 @@ class TestMain(unittest.TestCase):
     def test_main_runs_websocket_mode(
         self, mock_print_startup, mock_run_websocket, mock_run_cli
     ):
-        session = FakeSession()
-
-        with patch("main.GameSession", return_value=session):
+        with patch("main.GameSession") as mock_session:
             main.main()
 
-        mock_print_startup.assert_called_once_with(session)
-        mock_run_websocket.assert_called_once_with(session)
+        mock_session.assert_not_called()
+        mock_print_startup.assert_not_called()
+        mock_run_websocket.assert_called_once_with()
         mock_run_cli.assert_not_called()
 
 

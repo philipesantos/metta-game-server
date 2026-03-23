@@ -86,9 +86,10 @@ class TestWebSocketInput(unittest.TestCase):
         self.assertIn('"original_input": "!sync"', payload)
 
     def test_serialize_startup_event_has_no_messages(self):
-        payload = serialize_startup_event()
+        payload = serialize_startup_event("(= (look) Empty)")
 
         self.assertIn('"event": "startup"', payload)
+        self.assertIn('"metta_code": "(= (look) Empty)"', payload)
         self.assertNotIn('command_schema', payload)
         self.assertNotIn('startup_output', payload)
 

@@ -72,22 +72,21 @@ def _run_cli(session: GameSession) -> None:
         _print_command_result(result)
 
 
-def _run_websocket(session: GameSession) -> None:
+def _run_websocket() -> None:
     host = _websocket_host()
     port = _websocket_port()
     print("\n--- Websocket Input ---")
     print(f"Listening on ws://{host}:{port}")
-    asyncio.run(run_websocket_server(session, host=host, port=port))
+    asyncio.run(run_websocket_server(host=host, port=port))
 
 
 def main():
-    session = GameSession()
-    _print_startup(session)
-
     if _input_mode() == "websocket":
-        _run_websocket(session)
+        _run_websocket()
         return
 
+    session = GameSession()
+    _print_startup(session)
     _run_cli(session)
 
 

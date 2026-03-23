@@ -90,7 +90,8 @@ Startup event:
 
 ```json
 {
-  "event": "startup"
+  "event": "startup",
+  "metta_code": "..."
 }
 ```
 
