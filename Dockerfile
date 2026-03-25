@@ -1,12 +1,21 @@
+# syntax=docker/dockerfile:1.7
+
+ARG PYTHON_IMAGE=python:3.12-slim
+
 # Stage 1: Build stage
-FROM python:3.12-slim AS builder
+FROM ${PYTHON_IMAGE} AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_PREFER_BINARY=1
 
 # Set working directory
 WORKDIR /app
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/usr/local -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --prefix=/install -r requirements.txt
 
 # Copy application code to the build stage
 COPY main.py .
@@ -16,19 +25,20 @@ COPY scripts ./scripts
 COPY utils ./utils
 
 # Stage 2: Runtime stage
-FROM python:3.12-slim
+FROM ${PYTHON_IMAGE}
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    METTA_GAME_INPUT_MODE=websocket \
+    METTA_GAME_WEBSOCKET_HOST=0.0.0.0 \
+    METTA_GAME_WEBSOCKET_PORT=8765
 
 # Set working directory
 WORKDIR /app
 
 # Copy installed dependencies from builder stage
-COPY --from=builder /usr/local /usr/local
+COPY --from=builder /install /usr/local
 COPY --from=builder /app /app
-
-# Set environment variables
-ENV METTA_GAME_INPUT_MODE=websocket
-ENV METTA_GAME_WEBSOCKET_HOST=0.0.0.0
-ENV METTA_GAME_WEBSOCKET_PORT=8765
 
 # Expose WebSocket port
 EXPOSE 8765
