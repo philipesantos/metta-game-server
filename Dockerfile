@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir --prefix=/usr/local -r requirements.txt
 COPY main.py .
 COPY core ./core
 COPY modules ./modules
+COPY scripts ./scripts
 COPY utils ./utils
 
 # Stage 2: Runtime stage
@@ -33,7 +34,7 @@ ENV METTA_GAME_WEBSOCKET_PORT=8765
 EXPOSE 8765
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=5 --start-period=10s \
-  CMD python -c "import os, socket, sys; port = int(os.getenv('METTA_GAME_WEBSOCKET_PORT') or os.getenv('METTA_RIFT_WEBSOCKET_PORT', '8765')); s = socket.socket(); s.settimeout(2); sys.exit(0) if s.connect_ex(('localhost', port)) == 0 else sys.exit(1)"
+  CMD python /app/scripts/websocket_healthcheck.py
 
 # Command to run the WebSocket server
 CMD ["python", "main.py"]
