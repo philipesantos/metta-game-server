@@ -1,8 +1,8 @@
-# MeTTa Rift – Server
+# MeTTa Game – Server
 
-> **Note:** This repository contains the server for MeTTa Rift. If you're looking for the client, visit [MeTTa Rift – Client](https://github.com/fluidity-labs/metta-rift-client).
+> **Note:** This repository contains the server for MeTTa Game. If you're looking for the client, visit [MeTTa Game – Client](https://github.com/fluidity-labs/metta-game-client).
 
-**MeTTa Rift** is a fun and educational text-based RPG that showcases the power of [OpenCog Hyperon](https://hyperon.opencog.org/) and the [MeTTa language](https://metta-lang.dev/). It features a procedurally generated world with advanced reasoning and memory management capabilities. Designed to foster community adoption and engagement, MeTTa Rift serves as an interactive way to explore and expand the utility of MeTTa while immersing players in a dynamic AI-driven experience.
+**MeTTa Game** is a fun and educational text-based RPG that showcases the power of [OpenCog Hyperon](https://hyperon.opencog.org/) and the [MeTTa language](https://metta-lang.dev/). It features a procedurally generated world with advanced reasoning and memory management capabilities. Designed to foster community adoption and engagement, MeTTa Game serves as an interactive way to explore and expand the utility of MeTTa while immersing players in a dynamic AI-driven experience.
 
 The game includes a built-in console where players can observe all actions taken by MeTTa during gameplay, providing transparency into its decision-making and reasoning process. Additionally, an admin mode allows any query or action to be performed, offering deeper exploration and experimentation with MeTTa’s full capabilities.
 
@@ -21,14 +21,14 @@ The game includes a built-in console where players can observe all actions taken
 - **Python 3.8+**  
 - **pip** (Python package manager)
 - **Linux/macOS** (Hyperon is currently not available on Windows)
-- [**MeTTa Rift – Client**](https://github.com/fluidity-labs/metta-rift-client)
+- [**MeTTa Game – Client**](https://github.com/fluidity-labs/metta-game-client)
 
 ### Installation
 
 ```sh
 # Clone the repository
-git clone https://github.com/fluidity-labs/metta-rift-server.git
-cd metta-rift-server
+git clone https://github.com/fluidity-labs/metta-game-server.git
+cd metta-game-server
 
 # Install dependencies
 pip install -r requirements.txt
@@ -37,24 +37,25 @@ pip install -r requirements.txt
 python main.py
 
 # Run in CLI mode
-METTA_RIFT_INPUT_MODE=cli python main.py
+METTA_GAME_INPUT_MODE=cli python main.py
 ```
 
 ## Input Modes
 
-Choose the active input transport at startup with `METTA_RIFT_INPUT_MODE`:
+Choose the active input transport at startup with `METTA_GAME_INPUT_MODE`:
 
 - `websocket` (default): starts a websocket server and accepts commands from a web client.
 - `cli`: reads commands from stdin.
 
 Optional websocket settings:
 
-- `METTA_RIFT_WEBSOCKET_HOST` defaults to `127.0.0.1`
-- `METTA_RIFT_WEBSOCKET_PORT` defaults to `8765`
+- `METTA_GAME_WEBSOCKET_HOST` defaults to `127.0.0.1`
+- `METTA_GAME_WEBSOCKET_PORT` defaults to `8765`
+- Legacy `METTA_RIFT_*` environment variables are still accepted for backward compatibility.
 
 ## Websocket Messages
 
-When `METTA_RIFT_INPUT_MODE=websocket` or the variable is unset, the server accepts JSON messages only.
+When `METTA_GAME_INPUT_MODE=websocket` or the variable is unset, the server accepts JSON messages only.
 
 Request:
 

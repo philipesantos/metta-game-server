@@ -72,6 +72,10 @@ class TestMain(unittest.TestCase):
     def test_input_mode_reads_websocket_env(self):
         self.assertEqual(main._input_mode(), "websocket")
 
+    @patch.dict("os.environ", {main.LEGACY_INPUT_MODE_ENV_VAR: "cli"}, clear=True)
+    def test_input_mode_reads_legacy_env_when_new_name_is_unset(self):
+        self.assertEqual(main._input_mode(), "cli")
+
     @patch.dict("os.environ", {main.INPUT_MODE_ENV_VAR: "cli"})
     @patch("main._run_cli")
     @patch("main._run_websocket")
@@ -110,6 +114,14 @@ class TestMain(unittest.TestCase):
 
         mock_run_websocket_server.assert_called_once_with(host="127.0.0.1", port=8765)
         mock_asyncio_run.assert_called_once()
+
+    @patch.dict("os.environ", {main.LEGACY_WEBSOCKET_HOST_ENV_VAR: "0.0.0.0"}, clear=True)
+    def test_websocket_host_reads_legacy_env_when_new_name_is_unset(self):
+        self.assertEqual(main._websocket_host(), "0.0.0.0")
+
+    @patch.dict("os.environ", {main.LEGACY_WEBSOCKET_PORT_ENV_VAR: "9000"}, clear=True)
+    def test_websocket_port_reads_legacy_env_when_new_name_is_unset(self):
+        self.assertEqual(main._websocket_port(), 9000)
 
 
 if __name__ == "__main__":

@@ -25,15 +25,15 @@ COPY --from=builder /usr/local /usr/local
 COPY --from=builder /app /app
 
 # Set environment variables
-ENV METTA_RIFT_INPUT_MODE=websocket
-ENV METTA_RIFT_WEBSOCKET_HOST=0.0.0.0
-ENV METTA_RIFT_WEBSOCKET_PORT=8765
+ENV METTA_GAME_INPUT_MODE=websocket
+ENV METTA_GAME_WEBSOCKET_HOST=0.0.0.0
+ENV METTA_GAME_WEBSOCKET_PORT=8765
 
 # Expose WebSocket port
 EXPOSE 8765
 
 HEALTHCHECK --interval=5s --timeout=3s --retries=5 --start-period=10s \
-  CMD python -c "import os, socket, sys; port = int(os.getenv('METTA_RIFT_WEBSOCKET_PORT', '8765')); s = socket.socket(); s.settimeout(2); sys.exit(0) if s.connect_ex(('localhost', port)) == 0 else sys.exit(1)"
+  CMD python -c "import os, socket, sys; port = int(os.getenv('METTA_GAME_WEBSOCKET_PORT') or os.getenv('METTA_RIFT_WEBSOCKET_PORT', '8765')); s = socket.socket(); s.settimeout(2); sys.exit(0) if s.connect_ex(('localhost', port)) == 0 else sys.exit(1)"
 
 # Command to run the WebSocket server
 CMD ["python", "main.py"]

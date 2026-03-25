@@ -4,17 +4,28 @@ import os
 from core.runtime import GameSession, end_state_message
 from core.websocket_input import run_websocket_server
 
-INPUT_MODE_ENV_VAR = "METTA_RIFT_INPUT_MODE"
-WEBSOCKET_HOST_ENV_VAR = "METTA_RIFT_WEBSOCKET_HOST"
-WEBSOCKET_PORT_ENV_VAR = "METTA_RIFT_WEBSOCKET_PORT"
+INPUT_MODE_ENV_VAR = "METTA_GAME_INPUT_MODE"
+LEGACY_INPUT_MODE_ENV_VAR = "METTA_RIFT_INPUT_MODE"
+WEBSOCKET_HOST_ENV_VAR = "METTA_GAME_WEBSOCKET_HOST"
+LEGACY_WEBSOCKET_HOST_ENV_VAR = "METTA_RIFT_WEBSOCKET_HOST"
+WEBSOCKET_PORT_ENV_VAR = "METTA_GAME_WEBSOCKET_PORT"
+LEGACY_WEBSOCKET_PORT_ENV_VAR = "METTA_RIFT_WEBSOCKET_PORT"
 
 
 def _end_state_message(metta) -> str | None:
     return end_state_message(metta)
 
 
+def _getenv(primary: str, legacy: str, default: str) -> str:
+    value = os.getenv(primary)
+    if value is not None:
+        return value
+    return os.getenv(legacy, default)
+
+
 def _input_mode() -> str:
-    mode = os.getenv(INPUT_MODE_ENV_VAR, "websocket").strip().lower()
+    mode = _getenv(INPUT_MODE_ENV_VAR, LEGACY_INPUT_MODE_ENV_VAR, "websocket")
+    mode = mode.strip().lower()
     if mode not in {"cli", "websocket"}:
         raise ValueError(
             f"{INPUT_MODE_ENV_VAR} must be either 'cli' or 'websocket', got '{mode}'."
@@ -23,11 +34,15 @@ def _input_mode() -> str:
 
 
 def _websocket_host() -> str:
-    return os.getenv(WEBSOCKET_HOST_ENV_VAR, "127.0.0.1").strip() or "127.0.0.1"
+    host = _getenv(
+        WEBSOCKET_HOST_ENV_VAR, LEGACY_WEBSOCKET_HOST_ENV_VAR, "127.0.0.1"
+    )
+    return host.strip() or "127.0.0.1"
 
 
 def _websocket_port() -> int:
-    raw_port = os.getenv(WEBSOCKET_PORT_ENV_VAR, "8765").strip()
+    raw_port = _getenv(WEBSOCKET_PORT_ENV_VAR, LEGACY_WEBSOCKET_PORT_ENV_VAR, "8765")
+    raw_port = raw_port.strip()
     try:
         return int(raw_port)
     except ValueError as exc:
@@ -61,7 +76,7 @@ def _print_command_result(result) -> None:
 
 
 def _run_cli(session: GameSession) -> None:
-    print("\n--- MeTTa Console ---")
+    print("\n--- MeTTa Game Console ---")
     print("Type 'exit' to quit.")
 
     while True:
