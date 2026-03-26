@@ -37,7 +37,21 @@ class InventoryFunctionPattern(FunctionDefinition):
     def nl_spec(self):
         return NLSpec(
             intent="inventory",
-            templates=("inventory", "show inventory", "what do i have"),
+            templates=(
+                "inventory",
+                "show inventory",
+                "check inventory",
+                "what do i have",
+                "show me what i have",
+                "what do i have on me",
+                "what am i carrying",
+                "what is in my inventory",
+                "what's in my inventory",
+                "check my bag",
+                "show my bag",
+                "what is in my bag",
+                "what's in my bag",
+            ),
             metta="(inventory)",
             slots={},
         )

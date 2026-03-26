@@ -116,6 +116,13 @@ class TestCommandCatalog(unittest.TestCase):
         )
         self.assertEqual(utterance_to_metta.get("go north"), "(move-towards (north))")
         self.assertEqual(utterance_to_metta.get("inventory"), "(inventory)")
+        self.assertEqual(utterance_to_metta.get("check inventory"), "(inventory)")
+        self.assertEqual(utterance_to_metta.get("what am i carrying"), "(inventory)")
+        self.assertEqual(
+            utterance_to_metta.get("what is in my inventory"), "(inventory)"
+        )
+        self.assertEqual(utterance_to_metta.get("check my bag"), "(inventory)")
+        self.assertEqual(utterance_to_metta.get("what's in my bag"), "(inventory)")
         self.assertEqual(utterance_to_metta.get("stay still"), "(stay-still)")
         self.assertEqual(utterance_to_metta.get("wait"), "(stay-still)")
         self.assertEqual(
