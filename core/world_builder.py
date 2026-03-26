@@ -439,13 +439,13 @@ def build_world() -> World:
     abandoned_well = ContainerFactDefinition(
         key="well",
         name="Abandoned well",
-        text_enter="An abandoned well stands here, lined with worn stone.",
+        text_enter="An abandoned well yawns here, ringed with worn stone.",
         text_examine=(
             "The stone lining is cracked and dry, and the bucket hanging within "
             "suggests the water is long gone."
         ),
         text_look="You look inside the well.",
-        text_contents="An abandoned well stands here.",
+        text_contents="An abandoned well opens in the ground here.",
     )
     world.add_definition(abandoned_well)
     world.add_definition(

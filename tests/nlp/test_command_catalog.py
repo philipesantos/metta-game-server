@@ -71,7 +71,7 @@ class TestCommandCatalog(unittest.TestCase):
             ContainerFactDefinition(
                 "well",
                 name="Abandoned well",
-                text_contents="An abandoned well stands here.",
+                text_contents="An abandoned well opens in the ground here.",
             )
         )
         world.add_definition(InventoryFunctionPattern(character))
@@ -229,7 +229,7 @@ class TestCommandCatalog(unittest.TestCase):
             ContainerFactDefinition(
                 "well",
                 name="Abandoned well",
-                text_contents="An abandoned well stands here.",
+                text_contents="An abandoned well opens in the ground here.",
             )
         )
         world.add_definition(LookInFunctionDefinition(character))
