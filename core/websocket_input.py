@@ -1,5 +1,6 @@
 import asyncio
 import json
+from http import HTTPStatus
 from json import JSONDecodeError
 from typing import Callable
 from uuid import UUID
@@ -9,6 +10,9 @@ from core.runtime import CommandResult, GameSession
 
 class InvalidWebSocketMessage(ValueError):
     pass
+
+
+HEALTHCHECK_PATH = "/healthz"
 
 
 def _parse_message_uuid(payload: dict) -> str:
@@ -99,6 +103,37 @@ def serialize_error_event(error: str, message_uuid: str | None = None) -> str:
     return json.dumps(payload)
 
 
+def _normalize_request_path(path: str) -> str:
+    return path.split("?", 1)[0]
+
+
+def process_healthcheck_request(*args):
+    if len(args) != 2:
+        raise TypeError("process_healthcheck_request expects exactly two arguments.")
+
+    first, second = args
+
+    # websockets <= 10 passes (path, headers)
+    if isinstance(first, str):
+        if _normalize_request_path(first) != HEALTHCHECK_PATH:
+            return None
+        return (
+            HTTPStatus.OK,
+            [
+                ("Content-Type", "text/plain; charset=utf-8"),
+                ("Content-Length", "3"),
+            ],
+            b"OK\n",
+        )
+
+    # websockets >= 13 passes (connection, request)
+    request_path = getattr(second, "path", "")
+    if _normalize_request_path(request_path) != HEALTHCHECK_PATH:
+        return None
+
+    return first.respond(HTTPStatus.OK, "OK\n")
+
+
 async def run_websocket_server(
     session_factory: Callable[[], GameSession] = GameSession,
     *,
@@ -140,5 +175,10 @@ async def run_websocket_server(
             if terminal_response is not None:
                 await websocket.send(terminal_response)
 
-    async with websockets.serve(handle_connection, host, port):
+    async with websockets.serve(
+        handle_connection,
+        host,
+        port,
+        process_request=process_healthcheck_request,
+    ):
         await asyncio.Future()

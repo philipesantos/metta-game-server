@@ -2,8 +2,10 @@ import unittest
 
 from core.runtime import CommandResult, QueryExecution
 from core.websocket_input import (
+    HEALTHCHECK_PATH,
     InvalidWebSocketMessage,
     parse_websocket_message,
+    process_healthcheck_request,
     serialize_command_result,
     serialize_error_event,
     serialize_startup_event,
@@ -12,6 +14,18 @@ from core.websocket_input import (
 
 
 class TestWebSocketInput(unittest.TestCase):
+    def test_process_healthcheck_request_handles_legacy_websockets_signature(self):
+        response = process_healthcheck_request(HEALTHCHECK_PATH, {})
+
+        self.assertIsNotNone(response)
+        status, headers, body = response
+        self.assertEqual(int(status), 200)
+        self.assertIn(("Content-Type", "text/plain; charset=utf-8"), headers)
+        self.assertEqual(body, b"OK\n")
+
+    def test_process_healthcheck_request_ignores_non_health_paths(self):
+        self.assertIsNone(process_healthcheck_request("/", {}))
+
     def test_parse_websocket_message_accepts_json_object(self):
         command, command_type, message_uuid = parse_websocket_message(
             '{"command": "look around", "command_type": "natural_language", '

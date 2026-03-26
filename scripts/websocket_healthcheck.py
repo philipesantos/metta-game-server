@@ -1,17 +1,14 @@
 import os
 import socket
-import sys
 
 WEBSOCKET_PORT_ENV_VAR = "METTA_GAME_WEBSOCKET_PORT"
 LEGACY_WEBSOCKET_PORT_ENV_VAR = "METTA_RIFT_WEBSOCKET_PORT"
+HEALTHCHECK_PATH = "/healthz"
 
-_HANDSHAKE_TEMPLATE = (
-    "GET / HTTP/1.1\r\n"
+_REQUEST_TEMPLATE = (
+    "GET {path} HTTP/1.1\r\n"
     "Host: {host}:{port}\r\n"
-    "Upgrade: websocket\r\n"
-    "Connection: Upgrade\r\n"
-    "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
-    "Sec-WebSocket-Version: 13\r\n"
+    "Connection: close\r\n"
     "\r\n"
 )
 
@@ -27,21 +24,19 @@ def websocket_port_from_env(environ: dict[str, str] | None = None) -> int:
 
 
 def probe_websocket(host: str = "127.0.0.1", port: int = 8765, timeout: float = 2.0) -> None:
-    request = _HANDSHAKE_TEMPLATE.format(host=host, port=port).encode("ascii")
+    request = _REQUEST_TEMPLATE.format(
+        path=HEALTHCHECK_PATH,
+        host=host,
+        port=port,
+    ).encode("ascii")
     with socket.create_connection((host, port), timeout=timeout) as connection:
         connection.settimeout(timeout)
         connection.sendall(request)
         response = connection.recv(4096).decode("ascii", errors="replace")
 
     status_line = response.split("\r\n", 1)[0]
-    if not status_line.startswith(("HTTP/1.1 101 ", "HTTP/1.0 101 ")):
-        raise RuntimeError(f"Expected websocket upgrade response, got: {status_line!r}")
-
-    normalized_response = response.lower()
-    if "upgrade: websocket" not in normalized_response:
-        raise RuntimeError("Websocket upgrade response is missing the Upgrade header.")
-    if "connection: upgrade" not in normalized_response:
-        raise RuntimeError("Websocket upgrade response is missing the Connection header.")
+    if not status_line.startswith(("HTTP/1.1 200 ", "HTTP/1.0 200 ")):
+        raise RuntimeError(f"Expected healthcheck OK response, got: {status_line!r}")
 
 
 def main() -> int:
