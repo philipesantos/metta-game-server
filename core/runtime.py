@@ -1,3 +1,4 @@
+import asyncio
 import re
 import signal
 from contextlib import contextmanager
@@ -269,21 +270,23 @@ class GameSession:
         explicit_metta_timeout_seconds: float = 3.0,
     ):
         self._lock = Lock()
+        self._nlp_lock = Lock()
         metta_factory = metta_factory or _build_metta
         embedding_index_cls = embedding_index_cls or _load_embedding_index_class()
+        self._metta_factory = metta_factory
+        self._embedding_index_cls = embedding_index_cls
+        self._embedding_model_name = model_name
+        self._embedding_min_score = min_score
+        self._embedding_min_margin = min_margin
+        self._embedding_high_confidence_score = high_confidence_score
+        self._nlp_warmup_task = None
         self.metta = metta_factory()
         self.world = world_builder()
         self.metta_code = self.world.to_metta()
         self.metta_docs = build_metta_doc_catalog(self.world)
         self.world_load_output = self.metta.run(self.metta_code)
-        self.command_catalog = build_command_catalog(self.world, self.metta)
-        self.embedding_index = embedding_index_cls(
-            self.command_catalog,
-            model_name=model_name,
-            min_score=min_score,
-            min_margin=min_margin,
-            high_confidence_score=high_confidence_score,
-        )
+        self.command_catalog = []
+        self.embedding_index = None
         self.move_count = 0
         self.startup_query = (
             f"!{TriggerFunctionPattern(StartupEventPattern()).to_metta()}"
@@ -325,8 +328,52 @@ class GameSession:
         return end_state_message(self.metta)
 
     def refresh_command_catalog(self) -> None:
-        self.command_catalog = build_command_catalog(self.world, self.metta)
-        self.embedding_index.update_entries(self.command_catalog)
+        with self._nlp_lock:
+            self.command_catalog = build_command_catalog(self.world, self.metta)
+            if self.embedding_index is None:
+                self.embedding_index = self._embedding_index_cls(
+                    self.command_catalog,
+                    model_name=self._embedding_model_name,
+                    min_score=self._embedding_min_score,
+                    min_margin=self._embedding_min_margin,
+                    high_confidence_score=self._embedding_high_confidence_score,
+                )
+            else:
+                self.embedding_index.update_entries(self.command_catalog)
+
+    def _warm_nlp_snapshot(self) -> None:
+        with self._nlp_lock:
+            if self.embedding_index is not None:
+                return
+            snapshot_metta = self._metta_factory()
+            snapshot_metta.run(self.metta_code)
+            snapshot_metta.run(self.startup_query)
+            self.command_catalog = build_command_catalog(self.world, snapshot_metta)
+            self.embedding_index = self._embedding_index_cls(
+                self.command_catalog,
+                model_name=self._embedding_model_name,
+                min_score=self._embedding_min_score,
+                min_margin=self._embedding_min_margin,
+                high_confidence_score=self._embedding_high_confidence_score,
+            )
+
+    def start_nlp_warmup(self):
+        task = self._nlp_warmup_task
+        if task is not None and not task.done():
+            return task
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return None
+        task = loop.create_task(asyncio.to_thread(self._warm_nlp_snapshot))
+        self._nlp_warmup_task = task
+        return task
+
+    async def wait_for_nlp_ready(self) -> None:
+        task = self._nlp_warmup_task
+        if task is None:
+            return
+        await asyncio.shield(task)
 
     def process_command(
         self, user_query: str, *, command_type: str = "auto"

@@ -15,6 +15,7 @@ class MatchResult:
 
 _MODEL_CACHE_LOCK = Lock()
 _MODEL_CACHE: dict[str, SentenceTransformer] = {}
+_TEXT_EMBEDDING_CACHE: dict[str, dict[str, np.ndarray]] = {}
 
 
 def _get_shared_sentence_transformer(model_name: str) -> SentenceTransformer:
@@ -29,6 +30,7 @@ def _get_shared_sentence_transformer(model_name: str) -> SentenceTransformer:
 def _clear_shared_sentence_transformer_cache() -> None:
     with _MODEL_CACHE_LOCK:
         _MODEL_CACHE.clear()
+        _TEXT_EMBEDDING_CACHE.clear()
 
 
 class EmbeddingIndex:
@@ -47,7 +49,6 @@ class EmbeddingIndex:
         self.min_margin = min_margin
         self.high_confidence_score = high_confidence_score
         self.model = _get_shared_sentence_transformer(model_name)
-        self._embedding_cache: dict[str, np.ndarray] = {}
         self.embeddings = self._build_embeddings(entries)
 
     def update_entries(self, entries: list[CommandEntry]) -> None:
@@ -58,7 +59,9 @@ class EmbeddingIndex:
         if not entries:
             return np.empty((0, 0), dtype=np.float32)
         texts = [entry.utterance for entry in entries]
-        missing_texts = [text for text in texts if text not in self._embedding_cache]
+        with _MODEL_CACHE_LOCK:
+            shared_cache = _TEXT_EMBEDDING_CACHE.setdefault(self.model_name, {})
+            missing_texts = [text for text in texts if text not in shared_cache]
         if missing_texts:
             missing_embeddings = self.model.encode(
                 missing_texts,
@@ -66,12 +69,16 @@ class EmbeddingIndex:
                 convert_to_numpy=True,
                 show_progress_bar=False,
             )
-            for text, embedding in zip(missing_texts, missing_embeddings):
-                self._embedding_cache[text] = embedding
+            with _MODEL_CACHE_LOCK:
+                shared_cache = _TEXT_EMBEDDING_CACHE.setdefault(self.model_name, {})
+                for text, embedding in zip(missing_texts, missing_embeddings):
+                    shared_cache.setdefault(text, embedding)
 
-        return np.array(
-            [self._embedding_cache[text] for text in texts], dtype=np.float32
-        )
+        with _MODEL_CACHE_LOCK:
+            return np.array(
+                [_TEXT_EMBEDDING_CACHE[self.model_name][text] for text in texts],
+                dtype=np.float32,
+            )
 
     def match(self, query: str) -> MatchResult | None:
         if not self.entries:

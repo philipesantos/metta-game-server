@@ -109,6 +109,7 @@ def main():
         return
 
     session = GameSession()
+    session.refresh_command_catalog()
     _print_startup(session)
     _run_cli(session)
 

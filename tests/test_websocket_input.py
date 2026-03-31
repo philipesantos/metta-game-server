@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import AsyncMock, Mock
 
 from core.metta_doc_catalog import MettaDocEntry
 from core.runtime import CommandResult, QueryExecution
@@ -7,6 +8,7 @@ from core.websocket_input import (
     InvalidWebSocketMessage,
     parse_websocket_message,
     process_client_message,
+    process_client_message_async,
     process_healthcheck_request,
     serialize_command_result,
     serialize_error_event,
@@ -206,3 +208,74 @@ class TestWebSocketInput(unittest.TestCase):
         self.assertIn('"event": "error"', payload)
         self.assertIn('"error": "bad request"', payload)
         self.assertIn('"uuid": "123e4567-e89b-12d3-a456-426614174000"', payload)
+
+
+class TestWebSocketInputAsync(unittest.IsolatedAsyncioTestCase):
+    async def test_process_client_message_async_waits_for_nlp_on_natural_language(self):
+        class Session:
+            def __init__(self):
+                self.wait_for_nlp_ready = AsyncMock()
+                self.process_command = Mock(
+                    return_value=CommandResult(
+                        ok=True,
+                        input_text="look around",
+                        command_type="natural_language",
+                        queries=(
+                            QueryExecution(
+                                command_type="natural_language",
+                                original_input="look around",
+                                matched_metta="!look",
+                                responses=("You look around.",),
+                            ),
+                        ),
+                    )
+                )
+
+        session = Session()
+
+        response, terminal_response = await process_client_message_async(
+            session,
+            '{"command": "look around", "command_type": "natural_language", '
+            '"uuid": "123e4567-e89b-12d3-a456-426614174000"}',
+        )
+
+        session.wait_for_nlp_ready.assert_awaited_once()
+        session.process_command.assert_called_once_with(
+            "look around", command_type="natural_language"
+        )
+        self.assertIn('"event": "command_result"', response)
+        self.assertIsNone(terminal_response)
+
+    async def test_process_client_message_async_skips_nlp_wait_for_metta(self):
+        class Session:
+            def __init__(self):
+                self.wait_for_nlp_ready = AsyncMock()
+                self.process_command = Mock(
+                    return_value=CommandResult(
+                        ok=True,
+                        input_text="!(look)",
+                        command_type="metta",
+                        queries=(
+                            QueryExecution(
+                                command_type="metta",
+                                original_input="!(look)",
+                                matched_metta="!(look)",
+                            ),
+                        ),
+                    )
+                )
+
+        session = Session()
+
+        response, terminal_response = await process_client_message_async(
+            session,
+            '{"command": "!(look)", "command_type": "metta", '
+            '"uuid": "123e4567-e89b-12d3-a456-426614174000"}',
+        )
+
+        session.wait_for_nlp_ready.assert_not_called()
+        session.process_command.assert_called_once_with(
+            "!(look)", command_type="metta"
+        )
+        self.assertIn('"event": "command_result"', response)
+        self.assertIsNone(terminal_response)

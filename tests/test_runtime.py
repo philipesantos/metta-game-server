@@ -134,7 +134,7 @@ class TestGameSession(unittest.TestCase):
         self.assertIsNone(result.end_state_event)
         self.assertIn("!look", metta.calls)
         self.assertIn(sync_query, metta.calls)
-        self.assertGreaterEqual(mock_catalog.call_count, 2)
+        self.assertEqual(mock_catalog.call_count, 1)
 
     @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
     @patch("core.runtime.build_command_catalog", return_value=[])

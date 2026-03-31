@@ -133,6 +133,29 @@ def process_client_message(session: GameSession, message: str) -> tuple[str, str
         return serialize_error_event(detail, message_uuid), None
 
 
+async def process_client_message_async(
+    session: GameSession, message: str
+) -> tuple[str, str | None]:
+    message_uuid = None
+    try:
+        command, command_type, message_uuid = parse_websocket_message(message)
+        if command_type == "natural_language":
+            await session.wait_for_nlp_ready()
+        result = session.process_command(command, command_type=command_type)
+        response = serialize_command_result(result, message_uuid)
+        terminal_response = None
+        if result.end_state_event and result.end_state_message:
+            terminal_response = serialize_terminal_event(
+                result.end_state_event, message_uuid
+            )
+        return response, terminal_response
+    except (InvalidWebSocketMessage, ValueError) as exc:
+        return serialize_error_event(str(exc), message_uuid), None
+    except Exception as exc:
+        detail = str(exc).strip() or "Internal server error."
+        return serialize_error_event(detail, message_uuid), None
+
+
 def _normalize_request_path(path: str) -> str:
     return path.split("?", 1)[0]
 
@@ -186,9 +209,12 @@ async def run_websocket_server(
             await websocket.send(
                 serialize_terminal_event(session.startup_result.end_state_event)
             )
+        session.start_nlp_warmup()
 
         async for message in websocket:
-            response, terminal_response = process_client_message(session, message)
+            response, terminal_response = await process_client_message_async(
+                session, message
+            )
             await websocket.send(response)
             if terminal_response is not None:
                 await websocket.send(terminal_response)

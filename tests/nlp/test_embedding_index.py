@@ -235,6 +235,37 @@ class TestEmbeddingIndex(unittest.TestCase):
         self.assertIs(first.model, second.model)
         self.assertEqual(len(created_models), 1)
 
+    def test_reuses_shared_utterance_embeddings_across_instances(self):
+        entries = [
+            CommandEntry(
+                utterance="inventory",
+                intent="inventory",
+                metta="(inventory)",
+                slots={},
+            ),
+            CommandEntry(
+                utterance="look around",
+                intent="look",
+                metta="(look)",
+                slots={},
+            ),
+        ]
+        vectors = {
+            "inventory": np.array([1.0, 0.0], dtype=np.float32),
+            "look around": np.array([0.0, 1.0], dtype=np.float32),
+        }
+        fake_model = _FakeSentenceTransformer(vectors)
+
+        with patch(
+            "core.nlp.embedding_index.SentenceTransformer",
+            return_value=fake_model,
+        ):
+            first = EmbeddingIndex(entries, model_name="fake")
+            second = EmbeddingIndex(entries, model_name="fake")
+
+        self.assertEqual(fake_model.calls, [["inventory", "look around"]])
+        np.testing.assert_array_equal(first.embeddings, second.embeddings)
+
     def test_prefers_unique_exact_match_before_embeddings(self):
         entries = [
             CommandEntry(

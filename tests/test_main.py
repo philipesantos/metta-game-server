@@ -19,6 +19,9 @@ class FakeSession:
     startup_output = ""
     startup_result = None
 
+    def refresh_command_catalog(self):
+        return None
+
 
 class FakeMetta:
     def __init__(
