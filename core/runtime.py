@@ -1,5 +1,9 @@
+import re
+import signal
+from contextlib import contextmanager
 from dataclasses import dataclass
 from threading import Lock
+from threading import current_thread, main_thread
 from typing import Any, Callable
 
 from core.metta_doc_catalog import build_metta_doc_catalog, resolve_metta_doc_ids
@@ -149,6 +153,107 @@ _UNMATCHED_COMMAND_MESSAGE = (
     "That makes no sense here."
 )
 
+_EXPLICIT_METTA_DENYLIST = frozenset(
+    {
+        "import!",
+        "bind!",
+        "py-atom",
+        "py-dot",
+        "load-ascii",
+    }
+)
+
+_METTA_TOKEN_PATTERN = re.compile(r"[^\s()]+")
+
+
+class MettaExecutionTimeoutError(TimeoutError):
+    pass
+
+
+def _strip_metta_strings_and_comments(source: str) -> str:
+    result: list[str] = []
+    in_string = False
+    in_comment = False
+    escaping = False
+
+    for char in source:
+        if in_comment:
+            if char == "\n":
+                in_comment = False
+                result.append(char)
+            continue
+        if in_string:
+            if escaping:
+                escaping = False
+                continue
+            if char == "\\":
+                escaping = True
+                continue
+            if char == '"':
+                in_string = False
+            continue
+        if char == ";":
+            in_comment = True
+            continue
+        if char == '"':
+            in_string = True
+            continue
+        result.append(char)
+
+    return "".join(result)
+
+
+def _find_denied_metta_tokens(query: str) -> tuple[str, ...]:
+    seen: list[str] = []
+    for token in _METTA_TOKEN_PATTERN.findall(_strip_metta_strings_and_comments(query)):
+        if token in _EXPLICIT_METTA_DENYLIST and token not in seen:
+            seen.append(token)
+    return tuple(seen)
+
+
+def _format_denied_metta_error(tokens: tuple[str, ...]) -> str:
+    if len(tokens) == 1:
+        return f"Explicit MeTTa command uses forbidden token: {tokens[0]}."
+    return (
+        "Explicit MeTTa command uses forbidden tokens: "
+        + ", ".join(tokens)
+        + "."
+    )
+
+
+def _format_metta_timeout(seconds: float) -> str:
+    formatted = format(seconds, "g")
+    noun = "second" if formatted == "1" else "seconds"
+    return f"MeTTa command timed out after {formatted} {noun}."
+
+
+@contextmanager
+def _metta_timeout(seconds: float | None):
+    if seconds is None or seconds <= 0:
+        yield
+        return
+    if current_thread() is not main_thread():
+        yield
+        return
+
+    previous_handler = signal.getsignal(signal.SIGALRM)
+
+    def _handle_timeout(_signum, _frame):
+        raise MettaExecutionTimeoutError()
+
+    signal.signal(signal.SIGALRM, _handle_timeout)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous_handler)
+
+
+def _run_metta_with_timeout(metta, query: str, *, timeout_seconds: float | None):
+    with _metta_timeout(timeout_seconds):
+        return metta.run(query)
+
 
 class GameSession:
     def __init__(
@@ -161,6 +266,7 @@ class GameSession:
         min_score: float = 0.55,
         min_margin: float = 0.06,
         high_confidence_score: float = 0.82,
+        explicit_metta_timeout_seconds: float = 3.0,
     ):
         self._lock = Lock()
         metta_factory = metta_factory or _build_metta
@@ -182,6 +288,7 @@ class GameSession:
         self.startup_query = (
             f"!{TriggerFunctionPattern(StartupEventPattern()).to_metta()}"
         )
+        self.explicit_metta_timeout_seconds = explicit_metta_timeout_seconds
         startup_raw_output = self.metta.run(self.startup_query)
         self.startup_output = format_metta_output(startup_raw_output)
         startup_end_state = end_state(self.metta)
@@ -278,6 +385,28 @@ class GameSession:
                 matched_utterance = None
                 matched_metta = None
                 match_score = None
+                denied_tokens = _find_denied_metta_tokens(metta_query)
+                if denied_tokens:
+                    error_message = _format_denied_metta_error(denied_tokens)
+                    return CommandResult(
+                        ok=False,
+                        input_text=user_query,
+                        command_type=resolved_type,
+                        error=error_message,
+                        metta_query=metta_query,
+                        queries=(
+                            QueryExecution(
+                                command_type=resolved_type,
+                                original_input=user_query,
+                                matched_metta=metta_query,
+                                doc_ids=resolve_metta_doc_ids(
+                                    metta_query, self.metta_docs
+                                ),
+                                original_responses=(error_message,),
+                                responses=(),
+                            ),
+                        ),
+                    )
             else:
                 self.refresh_command_catalog()
                 match = self.embedding_index.match(stripped)
@@ -304,7 +433,35 @@ class GameSession:
                 match_score = match.score
 
             try:
-                result_output = self.metta.run(metta_query)
+                if resolved_type == "metta":
+                    result_output = _run_metta_with_timeout(
+                        self.metta,
+                        metta_query,
+                        timeout_seconds=self.explicit_metta_timeout_seconds,
+                    )
+                else:
+                    result_output = self.metta.run(metta_query)
+            except MettaExecutionTimeoutError:
+                error_message = _format_metta_timeout(
+                    self.explicit_metta_timeout_seconds
+                )
+                return CommandResult(
+                    ok=False,
+                    input_text=user_query,
+                    command_type=resolved_type,
+                    error=error_message,
+                    metta_query=metta_query,
+                    queries=(
+                        QueryExecution(
+                            command_type=resolved_type,
+                            original_input=user_query,
+                            matched_metta=metta_query,
+                            doc_ids=resolve_metta_doc_ids(metta_query, self.metta_docs),
+                            original_responses=(error_message,),
+                            responses=(),
+                        ),
+                    ),
+                )
             except Exception as exc:
                 if resolved_type != "metta":
                     raise

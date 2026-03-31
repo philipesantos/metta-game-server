@@ -5,7 +5,7 @@ from core.nlp.command_catalog import CommandEntry
 from core.patterns.functions.synchronize_tick_function_pattern import (
     SynchronizeTickFunctionPattern,
 )
-from core.runtime import GameSession
+from core.runtime import GameSession, MettaExecutionTimeoutError
 
 
 class FakeWorld:
@@ -209,6 +209,71 @@ class TestGameSession(unittest.TestCase):
         self.assertEqual(metta.calls.count(sync_query), 0)
         self.assertTrue(valid.ok)
         self.assertEqual(valid.output, "[['wait-result']]")
+
+    @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
+    @patch("core.runtime.build_command_catalog", return_value=[])
+    def test_rejects_explicit_metta_with_forbidden_tokens(
+        self, _catalog, _format_output
+    ):
+        metta = FakeMetta(responses={"WORLD": [[]]})
+        session = GameSession(
+            metta_factory=lambda: metta,
+            world_builder=lambda: FakeWorld(),
+            embedding_index_cls=FakeEmbeddingIndex,
+        )
+
+        result = session.process_command(
+            "!(bind! abs (py-atom math.fabs))",
+            command_type="metta",
+        )
+
+        self.assertFalse(result.ok)
+        self.assertEqual(
+            result.error,
+            "Explicit MeTTa command uses forbidden tokens: bind!, py-atom.",
+        )
+        self.assertEqual(result.metta_query, "!(bind! abs (py-atom math.fabs))")
+        self.assertEqual(len(result.queries), 1)
+        self.assertEqual(
+            result.queries[0].original_responses,
+            ("Explicit MeTTa command uses forbidden tokens: bind!, py-atom.",),
+        )
+        self.assertEqual(result.queries[0].responses, ())
+        self.assertNotIn("!(bind! abs (py-atom math.fabs))", metta.calls)
+        self.assertEqual(session.move_count, 0)
+
+    @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
+    @patch("core.runtime.build_command_catalog", return_value=[])
+    @patch(
+        "core.runtime._run_metta_with_timeout",
+        side_effect=MettaExecutionTimeoutError,
+    )
+    def test_times_out_explicit_metta_without_advancing_game(
+        self, _run_with_timeout, _catalog, _format_output
+    ):
+        metta = FakeMetta(responses={"WORLD": [[]]})
+        session = GameSession(
+            metta_factory=lambda: metta,
+            world_builder=lambda: FakeWorld(),
+            embedding_index_cls=FakeEmbeddingIndex,
+            explicit_metta_timeout_seconds=0.25,
+        )
+
+        result = session.process_command("!(wait)", command_type="metta")
+
+        self.assertFalse(result.ok)
+        self.assertEqual(
+            result.error,
+            "MeTTa command timed out after 0.25 seconds.",
+        )
+        self.assertEqual(result.metta_query, "!(wait)")
+        self.assertEqual(
+            result.queries[0].original_responses,
+            ("MeTTa command timed out after 0.25 seconds.",),
+        )
+        self.assertEqual(result.queries[0].responses, ())
+        self.assertNotIn("!(wait)", metta.calls)
+        self.assertEqual(session.move_count, 0)
 
     @patch("core.runtime.format_metta_output", side_effect=lambda output: str(output))
     @patch("core.runtime.build_command_catalog", return_value=[])
